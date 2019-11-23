@@ -1,0 +1,4 @@
+*.xml
+*.class
+project/target
+target
