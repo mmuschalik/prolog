@@ -17,3 +17,12 @@ type Goal = Term
 type Binding = (Variable,Term)
 type Substitution = (Variable, Variable)
 type Solution = List[Binding]
+
+given bindTermOrd: Ordering[Term] {
+  def compare(x: Term, y: Term): Int = (x,y) match {
+    case (Atom(a),Atom(b)) => a.compareTo(b)
+    case (Atom(a), Variable(b)) => -1 
+    case (Variable(a),Variable(b)) => a.compareTo(b)
+    case _ => 1
+  }
+}
