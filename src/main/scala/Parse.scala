@@ -23,8 +23,22 @@ def metaToTerm(meta: Term): Option[Domain.Term] = meta match {
   case _ => None
 }
 
-def metaToClause(meta: Term): Option[Domain.Clause] = {
-  None
+def metaToPredicate(meta: Term): Option[Domain.Term.Predicate] = 
+  metaToTerm(meta) match {
+    case Some(p: Predicate) => Some(p)
+    case _ => None
+  }
+
+def metaToClause(meta: Term): Option[Domain.Clause] = for {
+  cm <- clauseMetaTerm(meta, Nil)
+  ch <- metaToPredicate(cm._1)
+  cb <- allOK(cm._2.map(m => metaToTerm(m)))
+} yield Domain.Clause(ch, cb)
+
+def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = meta match {
+  case Term.ApplyInfix(h, Term.Name(":-"), Nil, t1::Nil) => Some((h, body))
+  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => clauseMetaTerm(t, t1 :: body)
+  case _ => None
 }
 
 def allOK[T](list: List[Option[T]]): Option[List[T]] = if (list.contains(None)) None else Some(list.collect{ case Some(s) => s })

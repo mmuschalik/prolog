@@ -5,7 +5,8 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    println("hello world")
+    val p = parseProgram("f(a,b) :- g(a) && h(a) && i(a)":: Nil)//.parse[Term].get.structure)
+    println(p)
 
   }
 }
