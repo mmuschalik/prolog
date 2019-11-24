@@ -8,14 +8,12 @@ enum Term {
 
 import Term._
 
-case class Clause(head: Predicate, body: List[Goal]) // H :- G1 /\ G2 
+case class Clause(head: Predicate, body: List[Term]) { 
+  // H :- G1 /\ G2
+  def key = head.name + "_" + head.arguments.size.toString
+} 
 
-type Program = List[Clause]
-type Bindings = List[Binding]
-type Goal = Term
-
-type Binding = (Variable,Term)
-type Substitution = (Variable, Variable)
+type Binding = (Term,Term)
 type Solution = List[Binding]
 
 given bindTermOrd: Ordering[Term] {
