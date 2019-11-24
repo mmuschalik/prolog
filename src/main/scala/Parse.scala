@@ -38,6 +38,7 @@ def metaToClause(meta: Term): Option[Domain.Clause] = for {
 def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = meta match {
   case Term.ApplyInfix(h, Term.Name(":-"), Nil, t1::Nil) => Some((h, body))
   case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => clauseMetaTerm(t, t1 :: body)
+  case t: Term.Apply => Some((t, Nil))
   case _ => None
 }
 
