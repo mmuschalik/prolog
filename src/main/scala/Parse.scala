@@ -5,6 +5,12 @@ import Prolog._
 import Prolog.Domain.Term._
 import Prolog.Domain.Program
 
+import scala.io.Source
+
+def parseFile(filePath: String): Option[Program] = 
+  parseProgram(Source.fromFile(filePath).getLines.filter(f => f.nonEmpty).toList)
+
+
 def parseT[T](str: String): Option[T] = {
   metaToTerm(str.parse[Term].get) match {
     case Some(p: T) => Some(p)
@@ -36,7 +42,7 @@ def metaToClause(meta: Term): Option[Domain.Clause] = for {
 } yield Domain.Clause(ch, cb)
 
 def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = meta match {
-  case Term.ApplyInfix(h, Term.Name(":-"), Nil, t1::Nil) => Some((h, body))
+  case Term.ApplyInfix(h, Term.Name(":-"), Nil, t1::Nil) => Some((h, t1 :: body))
   case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => clauseMetaTerm(t, t1 :: body)
   case t: Term.Apply => Some((t, Nil))
   case _ => None
