@@ -1,4 +1,4 @@
-package Prolog
+package Prolog.Domain
 
 import scala.meta._
 import Prolog._

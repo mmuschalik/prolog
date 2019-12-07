@@ -2,12 +2,15 @@ package Prolog.Domain
 
 import scala.collection.immutable.SortedSet
 
+// This is used to capture a set of equalities that have to be true
+// It is ordered as we want to substitute with the lowest value possible
 case class EqualitySet[A: Ordering] private (list: List[SortedSet[A]]) {
 
   // add 'a = b'
   def add(a: A, b: A): EqualitySet[A] = add(SortedSet(a,b))
   def add(t: (A, A)): EqualitySet[A] = add(t._1, t._2)
 
+  // substitute by finding the object and returning the lowest value
   def subOption(a: A): Option[A] = 
     for {
       f <- list.find(i => i.contains(a))
@@ -16,6 +19,8 @@ case class EqualitySet[A: Ordering] private (list: List[SortedSet[A]]) {
 
   def sub(a: A): A = subOption(a).getOrElse(a)
 
+
+  // helper functions
   private def add(sortedSet: SortedSet[A]): EqualitySet[A] = EqualitySet(add(list, sortedSet))
 
   private def merge[T](a: SortedSet[T], b: SortedSet[T]): Option[SortedSet[T]] = if(a.intersect(b).size > 0) Some(a.union(b)) else None

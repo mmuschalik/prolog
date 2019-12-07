@@ -24,3 +24,27 @@ given bindTermOrd: Ordering[Term] {
     case _ => 1
   }
 }
+
+def collect[T <: Term](term: Term): Set[T] = term match {
+  case p: Predicate => p.arguments.map(m => collect[T](m)).foldLeft(Set[T]())((a,b) => a union b)
+  case v: T => Set[T](v)
+  case _ => Set()
+}
+
+
+
+
+trait Show[T] {
+  def show(t: T): String
+}
+
+given termShow: Show[Term] {   
+  def show(t: Term): String = t match {
+    case Variable(name) => name
+    case Atom(value) => value
+    case Predicate(name, _) => name
+  }
+}
+
+def show[T](t: T)(given s: Show[T]): String = s.show(t)
+

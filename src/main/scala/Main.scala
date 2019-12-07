@@ -6,8 +6,20 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    val p = parseFile("./src/main/resources/test.txt")//.parse[Term].get.structure)
-    println(p)
+    import Domain.Program._
+    import Domain.Term._
+    import Prolog.Domain._
+    import Prolog.Domain.termShow
+
+    val solution = for {
+      program <- compile("./src/main/resources/test.txt")
+      goal = new Predicate("planet",List(Variable("A")))
+      result <- program(goal)
+    } yield result
+    
+    solution.foreach(ls => {
+      ls.foreach(s => println(s.map(m => show(m._1) + "=" + show(m._2)).mkString(", ")))
+    })
 
   }
 }
