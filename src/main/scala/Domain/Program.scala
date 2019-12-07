@@ -21,10 +21,13 @@ def compile(file: String): Option[Predicate => Option[List[Solution]]]=
 
 
 def solve(clause: Clause)(p: Program): Predicate => Option[List[Solution]] = (goal: Predicate) => {
-  val variables = collect[Variable](goal)
+  val variables = collectVariables(goal)
   val solution = solve(clause.head, goal)
 
-  Some(variables.toList.map(v => Binding(v,solution.sub(v))) :: Nil)
+  if(falseHood(solution))
+    None
+  else
+    Some(variables.toList.map(v => Binding(v,solution.sub(v))) :: Nil)
 }
 
 def solve(left: Term, right: Term): EqualitySet[Term] = {
@@ -40,14 +43,27 @@ def bind(left: Term, right: Term): List[Option[Binding]] = (left,right) match {
   case (a: Variable, b: Atom) => Some(Binding(a, b)) :: Nil
   case (a: Atom, b: Variable) => Some(Binding(b, a)) :: Nil
   case (pa: Predicate, pb: Predicate) if(pa.name == pb.name && pa.arguments.size == pb.arguments.size) => 
-    (pa.arguments zip pb.arguments).flatMap(m => bind(m._1,m._2))
-  case _ => None :: Nil
+    (pa.arguments zip pb.arguments)
+      .flatMap(m => bind(m._1,m._2))
+  case (a,b) => Some((a,b)) :: Nil
 }
 
-
+// any set with two (different) atoms can't be true
+def falseHood(es: EqualitySet[Term]): Boolean = 
+  es.list
+  .find(f => 
+    (f.headOption, f.drop(1).headOption) 
+      match { 
+          case (Some(a: Atom), Some(b: Atom)) => true
+          case _ => false
+      })
+  .isDefined
 
 
 def any[T](lo: List[Option[T]]): Option[List[T]] = {
   val res = lo.collect { case Some(s) => s }
-  if(res.isEmpty) None else Some(res)
+  if(res.isEmpty) 
+    None 
+  else 
+    Some(res)
 }

@@ -48,4 +48,8 @@ def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = m
   case _ => None
 }
 
-def allOK[T](list: List[Option[T]]): Option[List[T]] = if (list.contains(None)) None else Some(list.collect{ case Some(s) => s })
+def allOK[T](list: List[Option[T]]): Option[List[T]] = 
+  if (list.contains(None)) 
+    None 
+  else 
+    Some(list.collect{ case Some(s) => s })

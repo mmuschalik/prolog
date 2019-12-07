@@ -11,15 +11,24 @@ object Main {
     import Prolog.Domain._
     import Prolog.Domain.termShow
 
-    val solution = for {
-      program <- compile("./src/main/resources/test.txt")
-      goal = new Predicate("planet",List(Variable("A")))
-      result <- program(goal)
-    } yield result
+    val program = compile("./src/main/resources/test.txt")
     
-    solution.foreach(ls => {
-      ls.foreach(s => println(s.map(m => show(m._1) + "=" + show(m._2)).mkString(", ")))
-    })
+    println("Enter your goal:")
+    for (ln <- Source.stdin.getLines) {
+      val predicate = parseT[Predicate](ln)
+      val solution = 
+        for {
+          p <- program
+          goal <- predicate
+          result <- p(goal)
+        } yield result
+
+      solution.foreach(ls => {
+        ls.foreach(s => println(s.map(m => show(m._1) + "=" + show(m._2)).mkString(", ")))
+      })
+    }
+
+
 
   }
 }

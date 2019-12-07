@@ -8,8 +8,10 @@ enum Term {
 
 import Term._
 
+
+// Clause is of form >> H :- G1 /\ G2
 case class Clause(head: Predicate, body: List[Term]) { 
-  // H :- G1 /\ G2
+  
   def key = head.name + "_" + head.arguments.size.toString
 } 
 
@@ -25,14 +27,14 @@ given bindTermOrd: Ordering[Term] {
   }
 }
 
-def collect[T <: Term](term: Term): Set[T] = term match {
-  case p: Predicate => p.arguments.map(m => collect[T](m)).foldLeft(Set[T]())((a,b) => a union b)
-  case v: T => Set[T](v)
+def collectVariables(term: Term): Set[Variable] = term match {
+  case p: Predicate => p.arguments.map(m => collectVariables(m)).foldLeft(Set[Variable]())((a,b) => a union b)
+  case v: Variable => Set[Variable](v)
   case _ => Set()
 }
 
 
-
+// How to show/print a Term
 
 trait Show[T] {
   def show(t: T): String
