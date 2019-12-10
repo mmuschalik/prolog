@@ -1,22 +1,28 @@
 package Prolog.Domain
 
+import Term._
+
 enum Term {
   case Variable(name: String)                           // A
   case Atom(value: String)                              // a
   case Predicate(name: String, arguments: List[Term])   // f(t1,t2,t3)
 }
 
-import Term._
-
-
 // Clause is of form >> H :- G1 /\ G2
-case class Clause(head: Predicate, body: List[Term]) { 
+case class Clause(head: Predicate, body: List[Goal]) { 
   
   def key = head.name + "_" + head.arguments.size.toString
 } 
 
+case class Query(goals: List[Goal])
+
+case class State(query: Query, index: Int)
+case class Stack(stack: List[State])
+
+type Goal = Predicate
 type Binding = (Term,Term)
 type Solution = List[Binding]
+
 
 given bindTermOrd: Ordering[Term] {
   def compare(x: Term, y: Term): Int = (x,y) match {

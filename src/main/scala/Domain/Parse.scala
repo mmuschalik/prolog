@@ -10,10 +10,13 @@ import scala.io.Source
 def parseFile(filePath: String): Option[Program] = 
   parseProgram(Source.fromFile(filePath).getLines.filter(f => f.nonEmpty).toList)
 
+def parseQuery(str: String): Option[Query] = 
+  metaToGoals(str.parse[Term].get)
+    .map(gs => Query(gs))
 
-def parseT[T](str: String): Option[T] = {
+def parsePredicate(str: String): Option[Predicate] = {
   metaToTerm(str.parse[Term].get) match {
-    case Some(p: T) => Some(p)
+    case Some(p: Predicate) => Some(p)
     case _ => None
   }
 }
@@ -38,13 +41,22 @@ def metaToPredicate(meta: Term): Option[Domain.Term.Predicate] =
 def metaToClause(meta: Term): Option[Domain.Clause] = for {
   cm <- clauseMetaTerm(meta, Nil)
   ch <- metaToPredicate(cm._1)
-  cb <- allOK(cm._2.map(m => metaToTerm(m)))
+  cb <- allOK(cm._2.map(m => metaToPredicate(m)))
 } yield Domain.Clause(ch, cb)
 
 def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = meta match {
   case Term.ApplyInfix(h, Term.Name(":-"), Nil, t1::Nil) => Some((h, t1 :: body))
   case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => clauseMetaTerm(t, t1 :: body)
   case t: Term.Apply => Some((t, Nil))
+  case _ => None
+}
+
+def metaToGoals(meta: Term): Option[List[Goal]] =
+  goalsMetaTerm(meta, Nil).map(m => m.map(x => metaToPredicate(x)).flatten)
+
+def goalsMetaTerm(meta: Term, body: List[Term]): Option[List[Term]] = meta match {
+  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => goalsMetaTerm(t1, t1 :: body)
+  case t: Term.Apply => Some(t :: body)
   case _ => None
 }
 

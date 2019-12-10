@@ -30,10 +30,11 @@ def solve(clause: Clause)(p: Program): Predicate => Option[List[Solution]] = (go
     Some(variables.toList.map(v => Binding(v,solution.sub(v))) :: Nil)
 }
 
-def solve(left: Term, right: Term): EqualitySet[Term] = {
-  val b = bind(left, right)
-  EqualitySet.build(b.collect{ case Some(x) => x})
-}
+def solve(left: Term, right: Term): EqualitySet[Term] =
+  EqualitySet.build(
+    bind(left, right)
+      .collect{ case Some(x) => x})
+
 
 // given two terms, list all the bindings that would need to be happen
 def bind(left: Term, right: Term): List[Option[Binding]] = (left,right) match {
@@ -62,6 +63,7 @@ def falseHood(es: EqualitySet[Term]): Boolean =
 
 def any[T](lo: List[Option[T]]): Option[List[T]] = {
   val res = lo.collect { case Some(s) => s }
+
   if(res.isEmpty) 
     None 
   else 

@@ -1,6 +1,7 @@
 package Prolog
 
 object Main {
+
   import scala.meta._
   import scala.io.Source
 
@@ -12,23 +13,20 @@ object Main {
     import Prolog.Domain.termShow
 
     val program = compile("./src/main/resources/test.txt")
-    
+
     println("Enter your goal:")
     for (ln <- Source.stdin.getLines) {
-      val predicate = parseT[Predicate](ln)
-      val solution = 
+      val predicate = parseQuery(ln)
+      val solution =
         for {
           p <- program
           goal <- predicate
-          result <- p(goal)
+          result <- p(goal.goals.head) //fix
         } yield result
 
       solution.foreach(ls => {
         ls.foreach(s => println(s.map(m => show(m._1) + "=" + show(m._2)).mkString(", ")))
       })
     }
-
-
-
   }
 }
