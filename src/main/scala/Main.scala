@@ -11,22 +11,26 @@ object Main {
     import Domain.Term._
     import Prolog.Domain._
     import Prolog.Domain.termShow
+    import Prolog.Domain.queryShow
 
     val program = compile("./src/main/resources/test.txt")
 
     println("Enter your goal:")
     for (ln <- Source.stdin.getLines) {
-      val predicate = parseQuery(ln)
+      val query = parseQuery(ln)
+
+      //query.foreach(q => println(show(q)))
+
       val solution =
         for {
           p <- program
-          goal <- predicate
-          result <- p(goal.goals.head) //fix
+          goal <- query
+          result <- None //p(goal.goals.head) //fix
         } yield result
 
-      solution.foreach(ls => {
-        ls.foreach(s => println(s.map(m => show(m._1) + "=" + show(m._2)).mkString(", ")))
-      })
+      //solution.foreach(ls => {
+      //  ls.foreach(s => println(s.map(m => show(m._1) + "=" + show(m._2)).mkString(", ")))
+      //})
     }
   }
 }

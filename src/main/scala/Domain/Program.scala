@@ -15,20 +15,30 @@ case class Program private (program: Map[String, List[Clause]]) {
 }
 
 // compile the file/string
-def compile(file: String): Option[Predicate => Option[List[Solution]]]= 
-  parseFile(file).map(p => (goal: Predicate) => 
-    any(p.get(goal).map(c => solve(c)(p)(goal))).map(o => o.flatten))
+def compile(file: String): Option[Program] = Some(Program())
 
-
-def solve(clause: Clause)(p: Program): Predicate => Option[List[Solution]] = (goal: Predicate) => {
-  val variables = collectVariables(goal)
-  val solution = solve(clause.head, goal)
-
-  if(falseHood(solution))
-    None
-  else
-    Some(variables.toList.map(v => Binding(v,solution.sub(v))) :: Nil)
+def next(query: Query)(given p: Program): Option[Result] = None
+def next(stack: Stack[State])(given p: Program): Option[Result] = {
+  val solutionOption = 
+    for {
+      state <- stack.peek
+      goal <- state.query.goals.headOption
+      answer <- LazyList(state.remainder:_*)
+                  .map(clause => 
+                    for {
+                      solution <- solve(goal, clause.head)
+                      r <-  next(stack)
+                    } yield r) // solve then subst and update stack
+                  .find(f => f.isDefined)
+                  .flatten
+                  .orElse(next(stack)) //pop query remove remainder
+    } yield answer
+  
+  solutionOption
 }
+  
+def solve(queryGoal: Goal, clauseGoal: Goal): Option[Solution] = None
+
 
 def solve(left: Term, right: Term): EqualitySet[Term] =
   EqualitySet.build(

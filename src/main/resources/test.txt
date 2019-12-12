@@ -14,5 +14,3 @@ nextTo(mars,jupiter)
 nextTo(jupiter,saturn)
 nextTo(saturn,uranus)
 nextTo(uranus,neptune)
-
-nextTo(venus,mercury)

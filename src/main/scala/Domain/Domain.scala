@@ -16,8 +16,14 @@ case class Clause(head: Predicate, body: List[Goal]) {
 
 case class Query(goals: List[Goal])
 
-case class State(query: Query, index: Int)
-case class Stack(stack: List[State])
+case class State(query: Query, remainder: List[Clause], depth: Int)
+
+case class Stack[T](stack: List[T]) {
+  def pop: Stack[T] = if (stack.isEmpty) this else Stack(stack.tail)
+  def push(t: T): Stack[T] = Stack(t :: stack)
+  def peek: Option[T] = stack.headOption
+}
+case class Result(stack: Stack[State], solution: Option[Solution])
 
 type Goal = Predicate
 type Binding = (Term,Term)
@@ -50,8 +56,12 @@ given termShow: Show[Term] {
   def show(t: Term): String = t match {
     case Variable(name) => name
     case Atom(value) => value
-    case Predicate(name, _) => name
+    case Predicate(name, args) => name + "(" + args.map(show).mkString(",") + ")"
   }
+}
+
+given queryShow: Show[Query] {
+  def show(query: Query): String = query.goals.map(g => "~" +termShow.show(g)).mkString(" V ") + "."
 }
 
 def show[T](t: T)(given s: Show[T]): String = s.show(t)
