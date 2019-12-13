@@ -17,26 +17,53 @@ case class Program private (program: Map[String, List[Clause]]) {
 // compile the file/string
 def compile(file: String): Option[Program] = Some(Program())
 
-def next(query: Query)(given p: Program): Option[Result] = None
+def next(query: Query)(given p: Program): Option[Result] = 
+  for {
+    g <- query.goals.headOption
+    r <- next(Stack(State(query, p.get(g), 0) :: Nil))
+  } yield r
+
 def next(stack: Stack[State])(given p: Program): Option[Result] = {
-  val solutionOption = 
+  for {
+    state <- stack.peek
+    goal <- state.query.goals.headOption
+    goalRemainder = state.query.goals.tail
+
+    answer <- 
+      LazyList(state.remainder:_*)
+        .map(clause => 
+          for {
+            binding <- solve(goal, clause.head)
+            // if no goal left and we have a solution
+            // we have a result, return it
+            solution <- if(goalRemainder.isEmpty) 
+                          None // return Result and nextState
+                        else 
+                          next(stack) // subst and solve next goal
+          } yield solution)
+        .find(f => f.isDefined)
+        .flatten
+  } yield answer
+}
+
+def nextState(stack: Stack[State]): Option[Stack[State]] = {
+  val result = 
     for {
       state <- stack.peek
-      goal <- state.query.goals.headOption
-      answer <- LazyList(state.remainder:_*)
-                  .map(clause => 
-                    for {
-                      solution <- solve(goal, clause.head)
-                      r <-  next(stack)
-                    } yield r) // solve then subst and update stack
-                  .find(f => f.isDefined)
-                  .flatten
-                  .orElse(next(stack)) //pop query remove remainder
-    } yield answer
-  
-  solutionOption
+      clauseRemainder = state.remainder.tail
+    } yield 
+        if (clauseRemainder.isEmpty)
+          // no more clauses to look at here, go back and try there
+          nextState(stack.pop)
+        else
+          // keep everything but remove a clause
+          Some(stack.pop.push(State(state.query, clauseRemainder, 1)))
+    
+  result.flatten
 }
-  
+
+
+
 def solve(queryGoal: Goal, clauseGoal: Goal): Option[Solution] = None
 
 
