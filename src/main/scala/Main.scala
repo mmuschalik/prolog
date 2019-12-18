@@ -17,20 +17,25 @@ object Main {
 
     println("Enter your goal:")
     for (ln <- Source.stdin.getLines) {
-      val query = parseQuery(ln)
+      val queryOption = parseQuery(ln)
 
-      //query.foreach(q => println(show(q)))
+      //queryOption.foreach(q => println(show(q)))
 
       val solution =
         for {
           p <- program
-          goal <- query
-          result <- None //p(goal.goals.head) //fix
-        } yield result
+          //_ <- Some(println(p))
+          query <- queryOption
+          _ <- Some(println(show(query)))
+          clause <- p.get(query.goals.head).headOption//next(query)(given p)
+          //_ <- Some(println(clause))
+          clauseRename <- Some(renameVariables(clause,1))
+          _ <- Some(println(clauseRename))
+          solution <- solve(query.goals.head, clauseRename.head)
+          _ <- Some(println(solution))
+        } yield substitute(solution, clauseRename)
 
-      //solution.foreach(ls => {
-      //  ls.foreach(s => println(s.map(m => show(m._1) + "=" + show(m._2)).mkString(", ")))
-      //})
+      solution.foreach(s => println(s))
     }
   }
 }

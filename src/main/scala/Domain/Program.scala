@@ -15,7 +15,7 @@ case class Program private (program: Map[String, List[Clause]]) {
 }
 
 // compile the file/string
-def compile(file: String): Option[Program] = Some(Program())
+def compile(file: String): Option[Program] = parseFile(file)
 
 def next(query: Query)(given p: Program): Option[Result] = 
   for {
@@ -24,8 +24,10 @@ def next(query: Query)(given p: Program): Option[Result] =
   } yield r
 
 def next(stack: Stack[State])(given p: Program): Option[Result] = {
+
   for {
     state <- stack.peek
+    _ <- Some(println(show(state.query)))
     goal <- state.query.goals.headOption
     goalRemainder = state.query.goals.tail
 
@@ -64,10 +66,19 @@ def nextState(stack: Stack[State]): Option[Stack[State]] = {
 
 
 
-def solve(queryGoal: Goal, clauseGoal: Goal): Option[Solution] = None
+def solve(queryGoal: Goal, clauseGoal: Goal): Option[Solution] = {
+  import Prolog.Domain.bindTermOrd
+  val s = solveTerm(queryGoal, clauseGoal)
+  if(falseHood(s))
+    None
+  else
+    Some(s.list
+      .flatMap(l => l.collect{ case v: Variable => v: Term })
+      .flatMap(m => s.subOption(m).map(o => (m,o))))
+}
 
 
-def solve(left: Term, right: Term): EqualitySet[Term] =
+def solveTerm(left: Term, right: Term): EqualitySet[Term] =
   EqualitySet.build(
     bind(left, right)
       .collect{ case Some(x) => x})
@@ -76,7 +87,7 @@ def solve(left: Term, right: Term): EqualitySet[Term] =
 // given two terms, list all the bindings that would need to be happen
 def bind(left: Term, right: Term): List[Option[Binding]] = (left,right) match {
   case (Atom(a), Atom(b)) if(a == b) => Nil
-  case (Variable(a), Variable(b)) if(a == b) => Nil
+  case (Variable(an,av), Variable(bn,bv)) if(an == bn && av == bv) => Nil
   case (a: Variable, b: Variable) => Some(Binding(a,b)) :: Nil
   case (a: Variable, b: Atom) => Some(Binding(a, b)) :: Nil
   case (a: Atom, b: Variable) => Some(Binding(b, a)) :: Nil

@@ -15,6 +15,7 @@ case class EqualitySet[A: Ordering] private (list: List[SortedSet[A]]) {
     for {
       f <- list.find(i => i.contains(a))
       r <- f.headOption
+      if(r != a)
     } yield r
 
   def sub(a: A): A = subOption(a).getOrElse(a)

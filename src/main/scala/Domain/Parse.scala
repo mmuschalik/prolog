@@ -27,7 +27,7 @@ def parseProgram(lines: List[String]): Option[Program] = {
 }
 
 def metaToTerm(meta: Term): Option[Domain.Term] = meta match {
-  case Term.Name(name: String) => name.headOption.map(h => if (h.isUpper) Variable(name) else Atom(name))
+  case Term.Name(name: String) => name.headOption.map(h => if (h.isUpper) Variable(name, 0) else Atom(name))
   case Term.Apply(Term.Name(name), list) => allOK(list.map(m => metaToTerm(m))).map(o => Predicate(name, o))
   case _ => None
 }
@@ -55,7 +55,7 @@ def metaToGoals(meta: Term): Option[List[Goal]] =
   goalsMetaTerm(meta, Nil).map(m => m.map(x => metaToPredicate(x)).flatten)
 
 def goalsMetaTerm(meta: Term, body: List[Term]): Option[List[Term]] = meta match {
-  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => goalsMetaTerm(t1, t1 :: body)
+  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => goalsMetaTerm(t, t1 :: body)
   case t: Term.Apply => Some(t :: body)
   case _ => None
 }

@@ -14,3 +14,6 @@ nextTo(mars,jupiter)
 nextTo(jupiter,saturn)
 nextTo(saturn,uranus)
 nextTo(uranus,neptune)
+
+
+g(X,Y) :- f1(X) && f2(X,Y) 
