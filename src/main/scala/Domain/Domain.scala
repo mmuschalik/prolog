@@ -3,7 +3,7 @@ package Prolog.Domain
 import Term._
 
 enum Term {
-  case Variable(name: String, version: Integer)                           // A
+  case Variable(name: String, version: Integer)         // A
   case Atom(value: String)                              // a
   case Predicate(name: String, arguments: List[Term])   // f(t1,t2,t3)
 }
@@ -73,7 +73,11 @@ given bindTermOrd: Ordering[Term] {
 }
 
 def collectVariables(term: Term): Set[Variable] = term match {
-  case p: Predicate => p.arguments.map(m => collectVariables(m)).foldLeft(Set[Variable]())((a,b) => a union b)
+  case predicate: Predicate => 
+    predicate
+      .arguments
+      .map(m => collectVariables(m))
+      .foldLeft(Set[Variable]())((a,b) => a union b)
   case v: Variable => Set[Variable](v)
   case _ => Set()
 }
@@ -87,14 +91,39 @@ trait Show[T] {
 
 given termShow: Show[Term] {   
   def show(t: Term): String = t match {
-    case Variable(name, version) => if(version == 0) name else (name + version.toString)
+    case Variable(name, version) => 
+      if(version == 0) 
+        name 
+      else 
+        name + version.toString
     case Atom(value) => value
-    case Predicate(name, args) => name + "(" + args.map(show).mkString(",") + ")"
+    case Predicate(name, args) => 
+      name + "(" + 
+        args
+          .map(show)
+          .mkString(",")
+        + ")"
   }
 }
 
 given queryShow: Show[Query] {
-  def show(query: Query): String = query.goals.map(g => "~" +termShow.show(g)).mkString(" V ") + "."
+  def show(query: Query): String = 
+    query
+      .goals
+      .map(g => "~" + termShow.show(g))
+      .mkString(" V ") + "."
+}
+
+given resultShow: Show[Result] {
+  def show(result: Result): String = 
+    result
+      .solution
+      .map(sol => 
+        sol
+          .reverse
+          .map(a => termShow.show(a._1) + "=" + termShow.show(a._2))
+          .mkString(", "))
+      .getOrElse("false")
 }
 
 def show[T](t: T)(given s: Show[T]): String = s.show(t)

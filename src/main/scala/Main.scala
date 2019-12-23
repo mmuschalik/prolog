@@ -16,26 +16,31 @@ object Main {
     val program = compile("./src/main/resources/test.txt")
 
     println("Enter your goal:")
-    for (ln <- Source.stdin.getLines) {
-      val queryOption = parseQuery(ln)
+    val ln = scala.io.StdIn.readLine()
+    val queryOption = parseQuery(ln)
 
-      //queryOption.foreach(q => println(show(q)))
+    //queryOption.foreach(q => println(show(q)))
 
-      val solution =
-        for {
-          p <- program
-          //_ <- Some(println(p))
-          query <- queryOption
-          _ <- Some(println(show(query)))
-          clause <- p.get(query.goals.head).headOption//next(query)(given p)
-          //_ <- Some(println(clause))
-          clauseRename <- Some(renameVariables(clause,1))
-          _ <- Some(println(clauseRename))
-          solution <- solve(query.goals.head, clauseRename.head)
-          _ <- Some(println(solution))
-        } yield substitute(solution, clauseRename)
+    val solution =
+      for {
+        p <- program
+        //_ <- Some(println(p))
+        query <- queryOption
+        answer <- next(query)(given p)
+      } yield prompt(answer)(given p) 
+  }
+}
 
-      solution.foreach(s => println(s))
-    }
+def prompt(result: Domain.Result)(given p: Domain.Program): Unit = {
+  import Prolog.Domain.{resultShow, show}
+  println(show(result))
+  val line = scala.io.StdIn.readLine()
+  if(line.contains(":q"))
+    ()
+  else {
+    import Prolog.Domain._
+
+    val opt = next(result.stack)
+    opt.foreach(o => prompt(o))
   }
 }

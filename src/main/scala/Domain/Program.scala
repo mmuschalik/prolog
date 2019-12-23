@@ -7,7 +7,7 @@ case class Program private (program: Map[String, List[Clause]]) {
   def this() = this(Map())
 
   // add a clause to the Program
-  def add(clause: Clause): Program = Program(program + (clause.key -> (clause :: program.getOrElse(clause.key, Nil))))
+  def add(clause: Clause): Program = Program(program + (clause.key -> (program.getOrElse(clause.key, Nil) :+ clause)))
 
   // find all clauses with same predicate name and arity
   def get(goal: Predicate): List[Clause] = program.getOrElse(goal.name + "_" + goal.arguments.size, Nil)
@@ -27,23 +27,23 @@ def next(stack: Stack[State])(given p: Program): Option[Result] = {
 
   for {
     state <- stack.peek
-    _ <- Some(println(show(state.query)))
+    //_ <- Some(println(show(state.query)))
     goal <- state.query.goals.headOption
     goalRemainder = state.query.goals.tail
-    clauseRemainder = p.get(goal).drop(state.index).zipWithIndex
+    clauseRemainder = p.get(goal).zipWithIndex.drop(state.index)
 
     answer <- 
       LazyList(clauseRemainder:_*)
         .map(clause => 
           for {
             clauseRename <- Some(renameVariables(clause._1, state.depth+1))
-            binding <- solve(goal, clauseRename.head)
+            binding <- Prolog.Domain.Unify.unify(goal, clauseRename.head)
             // if no goal left and we have a solution
             // we have a result, return it
-            solution <- if(goalRemainder.isEmpty) 
-                          Some(Result(nextState(stack).getOrElse(Stack.empty), Some(mergeSolution(state.solution,binding)))) // return Result and nextState
+            solution <- if(goalRemainder.isEmpty && clauseRename.body.isEmpty) 
+                          Some(Result(nextState(stack.pop.push(State(state.query,clause._2,state.solution, state.depth))).getOrElse(Stack.empty), Some(mergeSolution(state.solution,binding)))) // return Result and nextState
                         else 
-                          next(stack.push(State(Query(clauseRename.body ::: goalRemainder), clause._2, binding ::: state.solution, state.depth + 1))) // subst and solve next goal
+                          next(stack.push(State(Query(substitute(binding,clauseRename).body ::: goalRemainder), 0, binding ::: state.solution, state.depth + 1))) // subst and solve next goal
           } yield solution)
         .find(f => f.isDefined)
         .flatten
@@ -62,61 +62,8 @@ def nextState(stack: Stack[State])(given p: Program): Option[Stack[State]] = {
           nextState(stack.pop)
         else
           // keep everything but remove a clause
-          Some(stack.pop.push(State(state.query, state.index + 1, state.solution, 1)))
+          Some(stack.pop.push(State(state.query, state.index + 1, state.solution, state.depth)))
     
   result.flatten
 }
 
-
-
-def solve(queryGoal: Goal, clauseGoal: Goal): Option[Solution] = {
-  import Prolog.Domain.bindTermOrd
-  val s = solveTerm(queryGoal, clauseGoal)
-  if(falseHood(s))
-    None
-  else
-    Some(s.list
-      .flatMap(l => l.collect{ case v: Variable => v: Term })
-      .flatMap(m => s.subOption(m).map(o => (m,o))))
-}
-
-
-def solveTerm(left: Term, right: Term): EqualitySet[Term] =
-  EqualitySet.build(
-    bind(left, right)
-      .collect{ case Some(x) => x})
-
-
-// given two terms, list all the bindings that would need to be happen
-def bind(left: Term, right: Term): List[Option[Binding]] = (left,right) match {
-  case (Atom(a), Atom(b)) if(a == b) => Nil
-  case (Variable(an,av), Variable(bn,bv)) if(an == bn && av == bv) => Nil
-  case (a: Variable, b: Variable) => Some(Binding(a,b)) :: Nil
-  case (a: Variable, b: Atom) => Some(Binding(a, b)) :: Nil
-  case (a: Atom, b: Variable) => Some(Binding(b, a)) :: Nil
-  case (pa: Predicate, pb: Predicate) if(pa.name == pb.name && pa.arguments.size == pb.arguments.size) => 
-    (pa.arguments zip pb.arguments)
-      .flatMap(m => bind(m._1,m._2))
-  case (a,b) => Some((a,b)) :: Nil
-}
-
-// any set with two (different) atoms can't be true
-def falseHood(es: EqualitySet[Term]): Boolean = 
-  es.list
-  .find(f => 
-    (f.headOption, f.drop(1).headOption) 
-      match { 
-          case (Some(a: Atom), Some(b: Atom)) => true
-          case _ => false
-      })
-  .isDefined
-
-
-def any[T](lo: List[Option[T]]): Option[List[T]] = {
-  val res = lo.collect { case Some(s) => s }
-
-  if(res.isEmpty) 
-    None 
-  else 
-    Some(res)
-}

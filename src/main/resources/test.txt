@@ -14,3 +14,5 @@ nextTo(mars,jupiter)
 nextTo(jupiter,saturn)
 nextTo(saturn,uranus)
 nextTo(uranus,neptune)
+
+test(X,Y) :- nextTo(X,Y)
