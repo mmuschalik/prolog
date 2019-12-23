@@ -23,7 +23,7 @@ def parsePredicate(str: String): Option[Predicate] = {
 
 def parseProgram(lines: List[String]): Option[Program] = {
   allOK(lines.map(l => metaToClause(l.parse[Term].get)))
-    .map(c => c.foldLeft(Program())((a,b) => a.add(b)))
+    .map(c => c.foldLeft(Program())((a, b) => a.add(b)))
 }
 
 def metaToTerm(meta: Term): Option[Domain.Term] = meta match {
@@ -64,4 +64,4 @@ def allOK[T](list: List[Option[T]]): Option[List[T]] =
   if (list.contains(None)) 
     None 
   else 
-    Some(list.collect{ case Some(s) => s })
+    Some(list.collect { case Some(s) => s })

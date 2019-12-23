@@ -18,28 +18,30 @@ case class Program private (program: Map[String, List[Clause]]) {
 def compile(file: String): Option[Program] = parseFile(file)
 
 def next(query: Query)(given p: Program): Option[Result] = 
-  for {
-    g <- query.goals.headOption
-    r <- next(Stack(State(query, 0, Nil, 0) :: Nil))
-  } yield r
+  next(Stack(State(query, 0, Nil, 0) :: Nil))
 
-def next(stack: Stack[State])(given p: Program): Option[Result] = {
+def next(stack: Stack[State])(given program: Program): Option[Result] = {
 
   for {
     state <- stack.peek
-    //_ <- Some(println(show(state.query)))
     goal <- state.query.goals.headOption
     goalRemainder = state.query.goals.tail
-    clauseRemainder = p.get(goal).zipWithIndex.drop(state.index)
+    clauseRemainder = 
+      program
+        .get(goal)
+        .zipWithIndex
+        .drop(state.index)
 
     answer <- 
       LazyList(clauseRemainder:_*)
         .map(clause => 
           for {
-            clauseRename <- Some(renameVariables(clause._1, state.depth+1))
+            clauseRename <- Some(renameVariables(clause._1, state.depth + 1))
             binding <- Prolog.Domain.Unify.unify(goal, clauseRename.head)
-            // if no goal left and we have a solution
+            
+            // if no more goals left to search
             // we have a result, return it
+            
             solution <- if(goalRemainder.isEmpty && clauseRename.body.isEmpty) 
                           Some(Result(nextState(stack.pop.push(State(state.query,clause._2,state.solution, state.depth))).getOrElse(Stack.empty), Some(mergeSolution(state.solution,binding)))) // return Result and nextState
                         else 
@@ -55,14 +57,12 @@ def nextState(stack: Stack[State])(given p: Program): Option[Stack[State]] = {
     for {
       state <- stack.peek
       goal <- state.query.goals.headOption
-      clauseRemainder = p.get(goal).drop(state.index+1)
+      clauseRemainder = p.get(goal).drop(state.index + 1)
     } yield 
         if (clauseRemainder.isEmpty)
-          // no more clauses to look at here, go back and try there
-          nextState(stack.pop)
+          nextState(stack.pop) // no more clauses to look at here, go back and try there
         else
-          // keep everything but remove a clause
-          Some(stack.pop.push(State(state.query, state.index + 1, state.solution, state.depth)))
+          Some(stack.pop.push(State(state.query, state.index + 1, state.solution, state.depth))) // keep everything but remove a clause
     
   result.flatten
 }

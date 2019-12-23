@@ -31,16 +31,16 @@ object Stack {
 case class Result(stack: Stack[State], solution: Option[Solution])
 
 type Goal = Predicate
-type Binding = (Term,Term)
+type Binding = (Term, Term)
 type Solution = List[Binding]
 
 def substitute(solution: Solution, clause: Clause): Clause = {
-  solution.foldLeft(clause)((c,b) => Clause(c.head, c.body.map(g => substitute(g, b._1, b._2))))
+  solution.foldLeft(clause)((c, b) => Clause(c.head, c.body.map(g => substitute(g, b._1, b._2))))
 }
 
 def substitute(goal: Goal, matchTerm: Term, subTerm: Term): Goal = {
   new Predicate(goal.name, goal.arguments.map(a => (a,matchTerm) match {
-    case (Variable(vn,vv), Variable(mn,mv)) if(vn == mn && vv == mv) => subTerm
+    case (Variable(vn, vv), Variable(mn, mv)) if(vn == mn && vv == mv) => subTerm
     case _ => a
   }))
 }
