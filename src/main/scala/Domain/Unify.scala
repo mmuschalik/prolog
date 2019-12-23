@@ -4,7 +4,6 @@ import Prolog.Domain.Term._
 import Prolog.Domain.bindTermOrd
 
 def unify(queryGoal: Goal, clauseGoal: Goal): Option[Solution] = {
-  import Prolog.Domain.bindTermOrd
   
   val equalitySet = solveTerm(queryGoal, clauseGoal)
   
@@ -14,11 +13,11 @@ def unify(queryGoal: Goal, clauseGoal: Goal): Option[Solution] = {
     Some(
       equalitySet
         .list
-        .flatMap(l => l.collect { case v: Variable => v: Term })
-        .flatMap(m => 
+        .flatMap(sortedSet => sortedSet.collect { case v: Variable => v: Term })
+        .flatMap(term => 
           equalitySet
-            .subOption(m)
-            .map(o => (m, o))))
+            .subOption(term)
+            .map(subTerm => (term, subTerm))))
 }
 
 

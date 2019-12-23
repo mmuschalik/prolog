@@ -9,26 +9,12 @@ enum Term {
 }
 
 // Clause is of form >> H :- G1 /\ G2
-case class Clause(head: Predicate, body: List[Goal]) { 
+case class Clause(head: Goal, body: List[Goal]) { 
   
   def key = head.name + "_" + head.arguments.size.toString
 } 
 
 case class Query(goals: List[Goal])
-
-case class State(query: Query, index: Int, solution: Solution, depth: Int)
-
-case class Stack[T](stack: List[T]) {
-  def pop: Stack[T] = if (stack.isEmpty) this else Stack(stack.tail)
-  def push(t: T): Stack[T] = Stack(t :: stack)
-  def peek: Option[T] = stack.headOption
-}
-
-object Stack {
-  def empty[T]: Stack[T] = Stack(Nil)
-}
-
-case class Result(stack: Stack[State], solution: Option[Solution])
 
 type Goal = Predicate
 type Binding = (Term, Term)
@@ -81,50 +67,3 @@ def collectVariables(term: Term): Set[Variable] = term match {
   case v: Variable => Set[Variable](v)
   case _ => Set()
 }
-
-
-// How to show/print a Term
-
-trait Show[T] {
-  def show(t: T): String
-}
-
-given termShow: Show[Term] {   
-  def show(t: Term): String = t match {
-    case Variable(name, version) => 
-      if(version == 0) 
-        name 
-      else 
-        name + version.toString
-    case Atom(value) => value
-    case Predicate(name, args) => 
-      name + "(" + 
-        args
-          .map(show)
-          .mkString(",")
-        + ")"
-  }
-}
-
-given queryShow: Show[Query] {
-  def show(query: Query): String = 
-    query
-      .goals
-      .map(g => "~" + termShow.show(g))
-      .mkString(" V ") + "."
-}
-
-given resultShow: Show[Result] {
-  def show(result: Result): String = 
-    result
-      .solution
-      .map(sol => 
-        sol
-          .reverse
-          .map(a => termShow.show(a._1) + "=" + termShow.show(a._2))
-          .mkString(", "))
-      .getOrElse("false")
-}
-
-def show[T](t: T)(given s: Show[T]): String = s.show(t)
-

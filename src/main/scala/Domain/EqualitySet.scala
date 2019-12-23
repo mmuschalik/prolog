@@ -41,8 +41,10 @@ case class EqualitySet[A: Ordering] private (list: List[SortedSet[A]]) {
     }
 }
 
-object EqualitySet{
+object EqualitySet {
   def apply[A: Ordering]() = new EqualitySet(Nil: List[SortedSet[A]])
   
-  def build[A: Ordering](pairs: List[(A, A)]): EqualitySet[A] = pairs.foldLeft(new EqualitySet(Nil: List[SortedSet[A]]))((a, b) => a.add(b))
+  def build[A: Ordering](pairs: List[(A, A)]): EqualitySet[A] = 
+    pairs
+      .foldLeft(new EqualitySet(Nil: List[SortedSet[A]]))((a, b) => a.add(b))
 }
