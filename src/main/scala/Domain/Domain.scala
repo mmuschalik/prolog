@@ -16,13 +16,18 @@ case class Clause(head: Predicate, body: List[Goal]) {
 
 case class Query(goals: List[Goal])
 
-case class State(query: Query, remainder: List[Clause], depth: Int)
+case class State(query: Query, index: Int, solution: Solution, depth: Int)
 
 case class Stack[T](stack: List[T]) {
   def pop: Stack[T] = if (stack.isEmpty) this else Stack(stack.tail)
   def push(t: T): Stack[T] = Stack(t :: stack)
   def peek: Option[T] = stack.headOption
 }
+
+object Stack {
+  def empty[T]: Stack[T] = Stack(Nil)
+}
+
 case class Result(stack: Stack[State], solution: Option[Solution])
 
 type Goal = Predicate
@@ -48,6 +53,9 @@ def renameVariables(predicate: Predicate, version: Int): Predicate =
 
 def renameVariables(clause: Clause, version: Int): Clause = 
   Clause(renameVariables(clause.head, version), clause.body.map(g => renameVariables(g, version)))
+
+def mergeSolution(s1: Solution, s2: Solution): Solution =
+  s1 ::: s2
 
 
 given bindTermOrd: Ordering[Term] {
