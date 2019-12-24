@@ -6,13 +6,13 @@ import Prolog.Domain.Term._
 import Prolog.Domain.Program
 
 import scala.io.Source
+import zio._
 
-def parseFile(filePath: String): Option[Program] = 
-  parseProgram(Source.fromFile(filePath).getLines.filter(f => f.nonEmpty).toList)
-
-def parseQuery(str: String): Option[Query] = 
-  metaToGoals(str.parse[Term].get)
-    .map(gs => Query(gs))
+def parseQuery(str: String): Task[Query] = 
+  IO.fromOption(
+    metaToGoals(str.parse[Term].get)
+      .map(gs => Query(gs)))
+    .mapError(_ => Exception("Can't parse query."))
 
 def parsePredicate(str: String): Option[Predicate] = {
   metaToTerm(str.parse[Term].get) match {

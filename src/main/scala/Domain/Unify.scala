@@ -3,7 +3,7 @@ import Prolog.Domain._
 import Prolog.Domain.Term._
 import Prolog.Domain.bindTermOrd
 
-def unify: Unification[Goal, Term] = (queryGoal, clauseGoal) => {
+def unify: Unification = (queryGoal, clauseGoal) => {
   
   val equalitySet = solveTerm(queryGoal, clauseGoal)
   
@@ -30,7 +30,7 @@ def solveTerm(left: Term, right: Term): EqualitySet[Term] =
 // given two terms, list all the bindings that would need to be happen
 def bind(left: Term, right: Term): List[Option[Binding[Term]]] = (left, right) match {
   case (Atom(a), Atom(b)) if(a == b) => Nil
-  case (Variable(an, av), Variable(bn, bv)) if(an == bn && av == bv) => Nil
+  case (a: Variable, b: Variable) if(a == b) => Nil
   case (a: Variable, b: Variable) => Some(Binding[Term](a, b)) :: Nil
   case (a: Variable, b: Atom) => Some(Binding[Term](a, b)) :: Nil
   case (a: Atom, b: Variable) => Some(Binding[Term](b, a)) :: Nil

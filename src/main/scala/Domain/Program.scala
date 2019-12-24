@@ -1,5 +1,6 @@
 package Prolog.Domain
 import Term._
+import zio._
 
 // Keep a map of predicate name and arity for quick lookup
 case class Program private (program: Map[String, List[Clause]]) {
@@ -14,5 +15,11 @@ case class Program private (program: Map[String, List[Clause]]) {
 
 }
 
+import scala.io.Source
+
 // compile the file/string
-def compile(file: String): Option[Program] = parseFile(file)
+def compile(filePath: String): Task[Program] = 
+  for {
+    lines   <- IO.effect(Source.fromFile(filePath).getLines.filter(f => f.nonEmpty).toList)
+    program <- IO.fromOption(parseProgram(lines)).mapError(er => Exception("Can't parse program."))
+    } yield program

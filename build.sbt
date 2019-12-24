@@ -9,5 +9,6 @@ lazy val root = project
     scalaVersion := dottyVersion,
 
     libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
-    libraryDependencies += "org.scalameta" % "scalameta_2.13" % "4.2.3"
+    libraryDependencies += "org.scalameta" % "scalameta_2.13" % "4.2.3",
+    libraryDependencies += "dev.zio" %% "zio" % "1.0.0-RC14"
   )

@@ -2,6 +2,8 @@ package Prolog.Domain
 
 import Term._
 
+type Solve = (Query, Program) => Option[Result]
+
 case class State(
   query: Query, 
   index: Int, 

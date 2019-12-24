@@ -1,30 +1,28 @@
 package Prolog
 
-object Main {
+import zio.App
+import zio.console._
+import Domain._
 
-  import scala.meta._
-  import scala.io.Source
+object MyApp extends App {
 
-  def main(args: Array[String]): Unit = {
+  def run(args: List[String]) =
+    myAppLogic.fold(_ => 1, _ => 0)
 
-    import Domain.Program._
-    import Domain.Term._
-    import Prolog.Domain._
-    import Prolog.Domain.termShow
-    import Prolog.Domain.queryShow
+  val myAppLogic =
+    for {
+      program     <- compile("./src/main/resources/test.txt")
+      _           <- putStrLn("Program successfully loaded.")
+      _           <- putStrLn("Enter your goal:")
+      queryString <- getStrLn
+      query       <- parseQuery(queryString) 
+    } yield next(query)(given program)
 
-    val program = compile("./src/main/resources/test.txt")
+  def test(args: Array[String]): Unit = {
 
-    println("Enter your goal:")
-    val ln = scala.io.StdIn.readLine()
-    val queryOption = parseQuery(ln)
-
-    val solution =
-      for {
-        p <- program
-        query <- queryOption
-        answer <- next(query)(given p)
-      } yield prompt(answer)(given p) 
+    //    query  <- queryOption
+    //    answer <- next(query)(given p)
+    //  } yield prompt(answer)(given p) 
   }
 }
 

@@ -20,16 +20,16 @@ type Goal = Predicate
 type Binding[T] = (T, T)
 type Bindings[T] = List[Binding[T]]
 
-type Unification[G,T] = (G, G) => Option[Bindings[T]]
-type Substitution[G,T] = (G, Binding[T]) => G
+type Unification = (Goal, Goal) => Option[Bindings[Term]]
+type Substitution = (Goal, Binding[Term]) => Goal
 
-def substitute(solution: Bindings[Term], clause: Clause)(given substitution: Substitution[Goal, Term]): Clause = {
+def substitute(solution: Bindings[Term], clause: Clause)(given substitution: Substitution): Clause = {
   solution.foldLeft(clause)((c, b) => Clause(c.head, c.body.map(g => substitution(g, (b._1, b._2)))))
 }
 
-given Substitution[Goal, Term] = (goal, binding) => {
+given Substitution = (goal, binding) => {
   new Predicate(goal.name, goal.arguments.map(a => (a, binding._1) match {
-    case (Variable(vn, vv), Variable(mn, mv)) if(vn == mn && vv == mv) => binding._2
+    case (v: Variable, m: Variable) if(v == m) => binding._2
     case _ => a
   }))
 }
