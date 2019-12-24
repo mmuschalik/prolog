@@ -27,7 +27,7 @@ def next(stack: Stack[State])(given program: Program): Option[Result] = {
             // we have a result, return it
             
             solution <- if(goalRemainder.isEmpty && clauseRename.body.isEmpty) 
-                          Some(Result(nextState(stack.pop.push(State(state.query,clause._2,state.solution, state.depth))).getOrElse(Stack.empty), Some(mergeSolution(state.solution,binding)))) // return Result and nextState
+                          Some(Result(nextState(stack.pop.push(State(state.query,clause._2,state.solution, state.depth))).getOrElse(Stack.empty), Some(mergeBindings(state.solution,binding)))) // return Result and nextState
                         else 
                           next(stack.push(State(Query(substitute(binding,clauseRename).body ::: goalRemainder), 0, binding ::: state.solution, state.depth + 1))) // subst and solve next goal
           } yield solution)

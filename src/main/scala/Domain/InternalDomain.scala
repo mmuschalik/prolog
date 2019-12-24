@@ -5,7 +5,7 @@ import Term._
 case class State(
   query: Query, 
   index: Int, 
-  solution: Solution, 
+  solution: Bindings[Term], 
   depth: Int)
 
 case class Stack[T](stack: List[T]) {
@@ -27,4 +27,4 @@ object Stack {
 
 case class Result(
   stack: Stack[State], 
-  solution: Option[Solution])
+  solution: Option[Bindings[Term]])

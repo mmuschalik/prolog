@@ -17,16 +17,19 @@ case class Clause(head: Goal, body: List[Goal]) {
 case class Query(goals: List[Goal])
 
 type Goal = Predicate
-type Binding = (Term, Term)
-type Solution = List[Binding]
+type Binding[T] = (T, T)
+type Bindings[T] = List[Binding[T]]
 
-def substitute(solution: Solution, clause: Clause): Clause = {
-  solution.foldLeft(clause)((c, b) => Clause(c.head, c.body.map(g => substitute(g, b._1, b._2))))
+type Unification[G,T] = (G, G) => Option[Bindings[T]]
+type Substitution[G,T] = (G, Binding[T]) => G
+
+def substitute(solution: Bindings[Term], clause: Clause)(given substitution: Substitution[Goal, Term]): Clause = {
+  solution.foldLeft(clause)((c, b) => Clause(c.head, c.body.map(g => substitution(g, (b._1, b._2)))))
 }
 
-def substitute(goal: Goal, matchTerm: Term, subTerm: Term): Goal = {
-  new Predicate(goal.name, goal.arguments.map(a => (a,matchTerm) match {
-    case (Variable(vn, vv), Variable(mn, mv)) if(vn == mn && vv == mv) => subTerm
+given Substitution[Goal, Term] = (goal, binding) => {
+  new Predicate(goal.name, goal.arguments.map(a => (a, binding._1) match {
+    case (Variable(vn, vv), Variable(mn, mv)) if(vn == mn && vv == mv) => binding._2
     case _ => a
   }))
 }
@@ -40,7 +43,7 @@ def renameVariables(predicate: Predicate, version: Int): Predicate =
 def renameVariables(clause: Clause, version: Int): Clause = 
   Clause(renameVariables(clause.head, version), clause.body.map(g => renameVariables(g, version)))
 
-def mergeSolution(s1: Solution, s2: Solution): Solution =
+def mergeBindings[T](s1: Bindings[T], s2: Bindings[T]): Bindings[T] =
   s1 ::: s2
 
 
@@ -56,14 +59,4 @@ given bindTermOrd: Ordering[Term] {
         av.compareTo(bv)
     case _ => 1
   }
-}
-
-def collectVariables(term: Term): Set[Variable] = term match {
-  case predicate: Predicate => 
-    predicate
-      .arguments
-      .map(m => collectVariables(m))
-      .foldLeft(Set[Variable]())((a,b) => a union b)
-  case v: Variable => Set[Variable](v)
-  case _ => Set()
 }

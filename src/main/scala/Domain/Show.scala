@@ -36,10 +36,13 @@ given resultShow: Show[Result] {
     result
       .solution
       .map(sol => 
-        sol
-          .reverse
-          .map(a => termShow.show(a._1) + "=" + termShow.show(a._2))
-          .mkString(", "))
+        if (sol.isEmpty)
+          "true"
+        else
+          sol
+            .reverse
+            .map(a => termShow.show(a._1) + "=" + termShow.show(a._2))
+            .mkString(", "))
       .getOrElse("false")
 }
 

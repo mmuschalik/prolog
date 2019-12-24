@@ -19,12 +19,9 @@ object Main {
     val ln = scala.io.StdIn.readLine()
     val queryOption = parseQuery(ln)
 
-    //queryOption.foreach(q => println(show(q)))
-
     val solution =
       for {
         p <- program
-        //_ <- Some(println(p))
         query <- queryOption
         answer <- next(query)(given p)
       } yield prompt(answer)(given p) 

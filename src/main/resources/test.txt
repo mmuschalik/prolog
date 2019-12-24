@@ -15,4 +15,9 @@ nextTo(jupiter,saturn)
 nextTo(saturn,uranus)
 nextTo(uranus,neptune)
 
-test(X,Y) :- nextTo(X,Y)
+bigger(jupiter,saturn)
+bigger(saturn,neptune)
+bigger(neptune,earth)
+
+is_bigger(X,Y) :- bigger(X,Z) && bigger(Z,Y)
+
