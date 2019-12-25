@@ -1,41 +1,37 @@
 package Prolog
 
-import zio.App
+import zio.{App,Task}
 import zio.console._
 import Domain._
 
 object MyApp extends App {
 
   def run(args: List[String]) =
-    myAppLogic.fold(_ => 1, _ => 0)
+    myApp.fold(_ => 1, _ => 0)
 
-  val myAppLogic =
+  val myApp =
     for {
       program     <- compile("./src/main/resources/test.txt")
       _           <- putStrLn("Program successfully loaded.")
       _           <- putStrLn("Enter your goal:")
       queryString <- getStrLn
-      query       <- parseQuery(queryString) 
-    } yield next(query)(given program)
+      query       <- parseQuery(queryString)
+      _           <- prompt(Domain.queryProgram(program, query))
+    } yield ()
 
-  def test(args: Array[String]): Unit = {
-
-    //    query  <- queryOption
-    //    answer <- next(query)(given p)
-    //  } yield prompt(answer)(given p) 
-  }
 }
 
-def prompt(result: Domain.Result)(given p: Domain.Program): Unit = {
+def prompt(resultIterator: ResultIterator) = {
   import Prolog.Domain.{resultShow, show}
-  println(show(result))
-  val line = scala.io.StdIn.readLine()
-  if(line.contains(":q"))
-    ()
-  else {
-    import Prolog.Domain._
+  import zio.stream._
 
-    val opt = next(result.stack)
-    opt.foreach(o => prompt(o))
-  }
+  val it = new Iterable[Result]{ def iterator: Iterator[Result] = resultIterator }
+
+  Stream
+    .fromIterable(it)
+    .foreach(r => 
+      for {
+        _   <- putStrLn(show(r))
+        str <- getStrLn
+      } yield ())
 }

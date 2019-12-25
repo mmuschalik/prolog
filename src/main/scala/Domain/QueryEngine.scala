@@ -51,3 +51,48 @@ def nextState(stack: Stack[State])(given p: Program): Option[Stack[State]] = {
   result.flatten
 }
 
+
+class MyResult(program: Program, query: Query) {
+  private var result: Result = _
+  private var init = false
+  
+  def hasNext(): Boolean = {
+    val resultOption = 
+      if(!init) 
+        next(query)(given program)
+      else 
+        next(result.stack)(given program)
+
+    resultOption
+      .foreach(r => 
+        {
+          result = r
+          init = true
+        })
+
+    resultOption.nonEmpty
+  }
+
+  def head: Result = result
+}
+
+class ResultIterator(program: Program, query: Query) extends collection.Iterator[Result] {
+  val myResult = MyResult(program, query)
+  var nextJustCalled = false
+
+  def hasNext: Boolean = { 
+    val res = myResult.hasNext()
+    nextJustCalled = false
+
+    res
+  }
+
+  def next(): Result = {
+    if(!nextJustCalled || hasNext) {
+      nextJustCalled = true
+      myResult.head
+    } else throw Exception("No results.")
+  }
+}
+
+def queryProgram(program: Program, query: Query): ResultIterator = ResultIterator(program, query)
