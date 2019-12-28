@@ -18,6 +18,7 @@ nextTo(uranus,neptune)
 bigger(jupiter,saturn)
 bigger(saturn,neptune)
 bigger(neptune,earth)
+bigger(earth,mars)
 
 is_bigger(X,Y) :- bigger(X,Z) && bigger(Z,Y)
 

@@ -23,8 +23,8 @@ type Bindings[T] = List[Binding[T]]
 type Unification = (Goal, Goal) => Option[Bindings[Term]]
 type Substitution = (Goal, Binding[Term]) => Goal
 
-def substitute(solution: Bindings[Term], clause: Clause)(given substitution: Substitution): Clause = {
-  solution.foldLeft(clause)((c, b) => Clause(c.head, c.body.map(g => substitution(g, (b._1, b._2)))))
+def substitute(solution: Bindings[Term], goals: List[Goal])(given substitution: Substitution): List[Goal] = {
+  solution.foldLeft(goals)((c, b) => c.map(g => substitution(g, (b._1, b._2))))
 }
 
 given Substitution = (goal, binding) => {

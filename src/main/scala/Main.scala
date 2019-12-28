@@ -25,13 +25,13 @@ def prompt(resultIterator: ResultIterator) = {
   import Prolog.Domain.{resultShow, show}
   import zio.stream._
 
-  val it = new Iterable[Result]{ def iterator: Iterator[Result] = resultIterator }
+  val it = new Iterable[Result] { def iterator: Iterator[Result] = resultIterator }
 
   Stream
     .fromIterable(it)
     .foreach(r => 
       for {
-        _   <- putStrLn(show(r))
+        _   <- putStrLn(r.toString)
         str <- getStrLn
       } yield ())
 }
