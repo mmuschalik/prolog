@@ -31,7 +31,7 @@ def prompt(resultIterator: ResultIterator) = {
     .fromIterable(it)
     .foreach(r => 
       for {
-        _   <- putStrLn(r.toString)
+        _   <- putStrLn(show(r))
         str <- getStrLn
       } yield ())
 }

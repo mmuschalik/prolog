@@ -20,5 +20,6 @@ bigger(saturn,neptune)
 bigger(neptune,earth)
 bigger(earth,mars)
 
+is_bigger(X,Y) :- bigger(X,Y)
 is_bigger(X,Y) :- bigger(X,Z) && bigger(Z,Y)
 
