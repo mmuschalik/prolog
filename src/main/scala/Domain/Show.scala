@@ -6,10 +6,10 @@ trait Show[T] {
   def show(t: T): String
 }
 
-given termShow: Show[Term] {   
-  def show(t: Term): String = t match {
+given termShow: Show[Term]
+  def show(t: Term): String = t match
     case Variable(name, version) => 
-      if(version == 0) 
+      if version == 0 then
         name 
       else 
         name + version.toString
@@ -20,18 +20,15 @@ given termShow: Show[Term] {
           .map(show)
           .mkString(",")
         + ")"
-  }
-}
 
-given queryShow: Show[Query] {
+given queryShow: Show[Query]
   def show(query: Query): String = 
     query
       .goals
       .map(g => "~" + termShow.show(g))
       .mkString(" V ") + "."
-}
 
-given resultShow: Show[Result] {
+given resultShow: Show[Result]
   def show(result: Result): String = 
     result
       .solution
@@ -44,7 +41,6 @@ given resultShow: Show[Result] {
             .map(a => termShow.show(a._1) + "=" + termShow.show(a._2))
             .mkString(", "))
       .getOrElse("false")
-}
 
 def show[T](t: T)(given s: Show[T]): String = s.show(t)
 

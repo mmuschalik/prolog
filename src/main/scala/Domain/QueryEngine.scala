@@ -9,7 +9,7 @@ def next(stack: Stack[State])(given program: Program): Option[Result] = {
   for
     state           <- stack.peek
     goal            <- state.query.goals.headOption
-    //_               <- Some(println(show(state.query)))
+    _               <- Some(println(show(state.query) + s" index=${state.index}"))
     goalRemainder    = state.query.goals.tail
     clauseRemainder  = 
       program
@@ -27,7 +27,7 @@ def next(stack: Stack[State])(given program: Program): Option[Result] = {
             // if no more goals left to search
             // we have a result, return it
             
-            solution     <- if(goalRemainder.isEmpty && clauseRename.body.isEmpty) 
+            solution     <- if goalRemainder.isEmpty && clauseRename.body.isEmpty then
                               Some(Result(nextState(stack.pop.push(State(state.query,clause._2,state.solution, state.depth))).getOrElse(Stack.empty), Some(mergeBindings(state.solution,binding)))) // return Result and nextState
                             else 
                               next(stack.push(State(Query(substitute(binding,clauseRename.body ::: goalRemainder)), 0, binding ::: state.solution, state.depth + 1))) // subst and solve next goal
@@ -38,21 +38,17 @@ def next(stack: Stack[State])(given program: Program): Option[Result] = {
   yield answer
 }
 
-def nextState(stack: Stack[State])(given p: Program): Option[Stack[State]] = {
-  val result = 
-    for
-      state          <- stack.peek
-      goal           <- state.query.goals.headOption
-      clauseRemainder = p.get(goal).drop(state.index + 1)
-    yield 
-      if clauseRemainder.isEmpty then
-        nextState(stack.pop) // no more clauses to look at here, go back and try there
-      else
-        Some(stack.pop.push(State(state.query, state.index + 1, state.solution, state.depth))) // keep everything but remove a clause
-    
-  result.flatten
-}
-
+def nextState(stack: Stack[State])(given p: Program): Option[Stack[State]] =
+  for
+    state          <- stack.peek
+    goal           <- state.query.goals.headOption
+    clauseRemainder = p.get(goal).drop(state.index + 1)
+    nextState      <- 
+                      if clauseRemainder.isEmpty then 
+                        nextState(stack.pop)
+                      else 
+                        Some(stack.pop.push(State(state.query, state.index + 1, state.solution, state.depth)))
+  yield nextState
 
 class MyResult(program: Program, query: Query) {
   private var result: Result = _
@@ -60,7 +56,7 @@ class MyResult(program: Program, query: Query) {
   
   def hasNext(): Boolean = {
     val resultOption = 
-      if(!init) 
+      if !init then
         next(query)(given program)
       else 
         next(result.stack)(given program)
@@ -82,19 +78,17 @@ class ResultIterator(program: Program, query: Query) extends collection.Iterator
   val myResult = MyResult(program, query)
   var nextJustCalled = false
 
-  def hasNext: Boolean = { 
-    val res = myResult.hasNext()
+  def hasNext: Boolean =
     nextJustCalled = false
+    myResult.hasNext()
 
-    res
-  }
-
-  def next(): Result = {
-    if(!nextJustCalled || hasNext) {
+  def next(): Result =
+    if !nextJustCalled || hasNext then
       nextJustCalled = true
       myResult.head
-    } else throw Exception("No results.")
-  }
+    else 
+      throw Exception("No results.")
+
 }
 
 def queryProgram(program: Program, query: Query): ResultIterator = ResultIterator(program, query)

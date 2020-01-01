@@ -23,6 +23,6 @@ bigger(saturn,neptune)
 bigger(neptune,earth)
 bigger(earth,mars)
 
-isBigger(X,Y) :- bigger(X,Y)
-isBigger(X,Y) :- bigger(X,Z) && isBigger(Z,Y)
+isBigger(X,Z) :- bigger(X,Z)
+isBigger(X,Z) :- bigger(X,Y) && isBigger(Y,Z)
 
