@@ -2,7 +2,7 @@ package Prolog.Domain
 
 import Term._
 
-enum Term {
+enum Term derives Eql {
   case Variable(name: String, version: Integer)         // A
   case Atom(value: String)                              // a
   case Predicate(name: String, arguments: List[Term])   // f(t1,t2,t3)

@@ -2,6 +2,14 @@
 The motivation here was to learn the new Scala 3 syntax and implement a prolog interpreter with pure functional code.
 I am not attempting to implement the entire prolog syntax, but rather implement a minimal set and aim for a neat solution.
 
+For this implementation I have used the following:
+
+* Scala 3 given clauses for implicit parameters
+* Scala 3 enum's for the ADT
+* ZIO Core for managing effects
+* ZIO Streams to implement an iterative prompt for each solution result
+
+
 # Example
 ```
 planet(mercury)
