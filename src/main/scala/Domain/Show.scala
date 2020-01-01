@@ -40,7 +40,7 @@ given resultShow: Show[Result] {
           "true"
         else
           sol
-            .reverse
+            .sorted
             .map(a => termShow.show(a._1) + "=" + termShow.show(a._2))
             .mkString(", "))
       .getOrElse("false")

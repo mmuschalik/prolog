@@ -9,7 +9,7 @@ def next(stack: Stack[State])(given program: Program): Option[Result] = {
   for {
     state           <- stack.peek
     goal            <- state.query.goals.headOption
-    _               <- Some(println(show(state.query)))
+    //_               <- Some(println(show(state.query)))
     goalRemainder    = state.query.goals.tail
     clauseRemainder  = 
       program
