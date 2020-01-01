@@ -36,7 +36,7 @@ given resultShow: Show[Result] {
     result
       .solution
       .map(sol => 
-        if (sol.isEmpty)
+        if sol.isEmpty then
           "true"
         else
           sol

@@ -10,14 +10,14 @@ object MyApp extends App {
     myApp.fold(_ => 1, _ => 0)
 
   val myApp =
-    for {
+    for
       program     <- compile("./src/main/resources/test.txt")
       _           <- putStrLn("Program successfully loaded.")
       _           <- putStrLn("Enter your goal:")
       queryString <- getStrLn
       query       <- parseQuery(queryString)
       _           <- prompt(Domain.queryProgram(program, query))
-    } yield ()
+    yield ()
 
 }
 
@@ -30,8 +30,8 @@ def prompt(resultIterator: ResultIterator) = {
   Stream
     .fromIterable(it)
     .foreach(r => 
-      for {
+      for 
         _   <- putStrLn(show(r))
         //str <- getStrLn
-      } yield ())
+      yield ())
 }

@@ -13,7 +13,7 @@ case class State(
 case class Stack[T](stack: List[T]) {
 
   def pop: Stack[T] = 
-    if (stack.isEmpty)
+    if stack.isEmpty then
       this 
     else 
       Stack(stack.tail)

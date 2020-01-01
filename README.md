@@ -8,7 +8,8 @@ For this implementation I have used the following:
 * Scala 3 enum's for the ADT
 * ZIO Core for managing effects
 * ZIO Streams to implement an iterative prompt for each solution result
-
+* Scala 3 new control syntax and use indenting to get more readable code
+* Scala 3 Top-level definitions for functional methods
 
 # Example
 ```

@@ -36,7 +36,7 @@ given Substitution = (goal, binding) => {
 
 def renameVariables(predicate: Predicate, version: Int): Predicate = 
   new Predicate(predicate.name, predicate.arguments.map(a => a match {
-    case Variable(name, _) => Variable(if (name.startsWith("_")) name else ("_" + name), version)
+    case Variable(name, _) => Variable(if name.startsWith("_") then name else ("_" + name), version)
     case _ => a
   }))
 
@@ -53,7 +53,7 @@ given bindTermOrd: Ordering[Term] {
     case (Atom(a), Variable(b, _)) => -1 
     case (Variable(a, _),Variable(b, _)) if (b.startsWith("_") && !a.startsWith("_")) => -1
     case (Variable(a, av),Variable(b, bv)) =>
-      if (av == bv)
+      if av == bv then
         a.compareTo(b)
       else
         av.compareTo(bv)

@@ -27,7 +27,7 @@ def parseProgram(lines: List[String]): Option[Program] = {
 }
 
 def metaToTerm(meta: Term): Option[Domain.Term] = meta match {
-  case Term.Name(name: String) => name.headOption.map(h => if (h.isUpper) Variable(name, 0) else Atom(name))
+  case Term.Name(name: String) => name.headOption.map(h => if h.isUpper then Variable(name, 0) else Atom(name))
   case Term.Apply(Term.Name(name), list) => allOK(list.map(m => metaToTerm(m))).map(o => Predicate(name, o))
   case _ => None
 }
@@ -38,11 +38,12 @@ def metaToPredicate(meta: Term): Option[Domain.Term.Predicate] =
     case _ => None
   }
 
-def metaToClause(meta: Term): Option[Domain.Clause] = for {
-  cm <- clauseMetaTerm(meta, Nil)
-  ch <- metaToPredicate(cm._1)
-  cb <- allOK(cm._2.map(m => metaToPredicate(m)))
-} yield Domain.Clause(ch, cb)
+def metaToClause(meta: Term): Option[Domain.Clause] = 
+  for
+    cm <- clauseMetaTerm(meta, Nil)
+    ch <- metaToPredicate(cm._1)
+    cb <- allOK(cm._2.map(m => metaToPredicate(m)))
+  yield Domain.Clause(ch, cb)
 
 def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = meta match {
   case Term.ApplyInfix(h, Term.Name(":-"), Nil, t1::Nil) => Some((h, t1 :: body))
@@ -61,7 +62,7 @@ def goalsMetaTerm(meta: Term, body: List[Term]): Option[List[Term]] = meta match
 }
 
 def allOK[T](list: List[Option[T]]): Option[List[T]] = 
-  if (list.contains(None)) 
+  if list.contains(None) then
     None 
   else 
     Some(list.collect { case Some(s) => s })

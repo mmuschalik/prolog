@@ -19,7 +19,7 @@ import scala.io.Source
 
 // compile the file/string
 def compile(filePath: String): Task[Program] = 
-  for {
+  for
     lines   <- IO.effect(Source.fromFile(filePath).getLines.filter(f => f.nonEmpty).toList)
     program <- IO.fromOption(parseProgram(lines)).mapError(er => Exception("Can't parse program."))
-    } yield program
+  yield program
