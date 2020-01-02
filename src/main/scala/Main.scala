@@ -3,6 +3,8 @@ package Prolog
 import zio.{App,Task}
 import zio.console._
 import Domain._
+import zio.stream.Stream
+import Prolog.Domain.{resultShow, show}
 
 object MyApp extends App {
 
@@ -21,17 +23,10 @@ object MyApp extends App {
 
 }
 
-def prompt(resultIterator: ResultIterator) = {
-  import Prolog.Domain.{resultShow, show}
-  import zio.stream._
-
-  val it = new Iterable[Result] { def iterator: Iterator[Result] = resultIterator }
-
-  Stream
-    .fromIterable(it)
+def prompt(stream: Stream[Nothing, Result]) =
+  stream
     .foreach(r => 
       for 
         _   <- putStrLn(show(r))
         str <- getStrLn
       yield ())
-}

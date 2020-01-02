@@ -1,5 +1,6 @@
 package Prolog.Domain
 import Term._
+import zio.stream.Stream
 
 def next(query: Query)(given p: Program): Option[Result] = 
   next(Stack(State(query, 0, Nil, 0) :: Nil))
@@ -50,45 +51,12 @@ def nextState(stack: Stack[State])(given p: Program): Option[Stack[State]] =
                         Some(stack.pop.push(State(state.query, state.index + 1, state.solution, state.depth)))
   yield nextState
 
-class MyResult(program: Program, query: Query) {
-  private var result: Result = _
-  private var init = false
-  
-  def hasNext(): Boolean = {
-    val resultOption = 
-      if !init then
-        next(query)(given program)
-      else 
-        next(result.stack)(given program)
 
-    resultOption
-      .foreach(r => 
-        {
-          result = r
-          init = true
-        })
 
-    resultOption.nonEmpty
-  }
+def queryProgram(program: Program, query: Query): Stream[Nothing,Result] = 
+  import Prolog.Domain.{resultShow, show}
+  import zio.stream._
 
-  def head: Result = result
-}
+  val it = new Iterable[Result] { def iterator: Iterator[Result] = ResultIterator(program, query) }
 
-class ResultIterator(program: Program, query: Query) extends collection.Iterator[Result] {
-  val myResult = MyResult(program, query)
-  var nextJustCalled = false
-
-  def hasNext: Boolean =
-    nextJustCalled = false
-    myResult.hasNext()
-
-  def next(): Result =
-    if !nextJustCalled || hasNext then
-      nextJustCalled = true
-      myResult.head
-    else 
-      throw Exception("No results.")
-
-}
-
-def queryProgram(program: Program, query: Query): ResultIterator = ResultIterator(program, query)
+  Stream.fromIterable(it)
