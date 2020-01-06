@@ -45,23 +45,19 @@ isBigger(X,Y) :- bigger(X,Z) && isBigger(Z,Y)
 
 # Commandline Query
 ```bash
-$ echo "isNextTo(A,B)" | sbt run
+$ echo "isBigger(A,B)" | sbt "run -f ./src/main/resources/test.txt"
 ```
 
 The following output will be generated:
 ```
-A=mercury, B=venus, _X1=A, _Y1=B
-A=venus, B=earth, _X1=A, _Y1=B
-A=earth, B=mars, _X1=A, _Y1=B
-A=mars, B=jupiter, _X1=A, _Y1=B
-A=jupiter, B=saturn, _X1=A, _Y1=B
-A=saturn, B=uranus, _X1=A, _Y1=B
-A=uranus, B=neptune, _X1=A, _Y1=B
-A=venus, B=mercury, _X1=A, _Y1=B
-A=earth, B=venus, _X1=A, _Y1=B
-A=mars, B=earth, _X1=A, _Y1=B
-A=jupiter, B=mars, _X1=A, _Y1=B
-A=saturn, B=jupiter, _X1=A, _Y1=B
-A=uranus, B=saturn, _X1=A, _Y1=B
-A=neptune, B=uranus, _X1=A, _Y1=B
+A=jupiter, B=saturn,
+A=saturn, B=neptune,
+A=neptune, B=earth,
+A=earth, B=mars,
+A=jupiter, B=neptune,
+A=jupiter, B=earth,
+A=jupiter, B=mars,
+A=saturn, B=earth,
+A=saturn, B=mars,
+A=neptune, B=mars
 ```

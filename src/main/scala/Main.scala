@@ -1,6 +1,6 @@
 package Prolog
 
-import zio.{App,Task}
+import zio.{App,Task,IO}
 import zio.console._
 import zio.stream.Stream
 
@@ -11,24 +11,24 @@ import Prolog.Domain.ADT.Result
 object MyApp extends App {
 
   def run(args: List[String]) =
-    myApp.fold(_ => 1, _ => 0)
+    myApp(args).fold(_ => 1, _ => 0)
 
-  val myApp =
+  val myApp = (args: List[String]) =>
     for
-      program     <- compile("./src/main/resources/test.txt")
+      config      <- parse(args)
+      program     <- compile(config.file)
       _           <- putStrLn("Program successfully loaded.")
       _           <- putStrLn("Enter your goal:")
       queryString <- getStrLn
       query       <- parseQuery(queryString)
-      _           <- prompt(Domain.queryProgram(program, query))
+      _           <- prompt(Domain.queryProgram(program, query), config)
     yield ()
-
 }
 
-def prompt(stream: Stream[Nothing, Result]) =
-  stream
+def prompt(stream: Stream[Nothing, Result], config: CliConfig) =
+  (if(config.top > 0) then stream.take(config.top) else stream)
     .foreach(r => 
       for 
         _   <- putStrLn(show(r))
-        str <- getStrLn
+        str <- if config.prompt then getStrLn else IO.succeed("")
       yield ())
