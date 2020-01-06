@@ -24,7 +24,8 @@ case class EqualitySet[A: Ordering] private (list: List[SortedSet[A]]) {
   // helper functions
   private def add(sortedSet: SortedSet[A]): EqualitySet[A] = EqualitySet(add(list, sortedSet))
 
-  private def merge[T](a: SortedSet[T], b: SortedSet[T]): Option[SortedSet[T]] = if a.intersect(b).size > 0 then Some(a.union(b)) else None
+  private def merge[T](a: SortedSet[T], b: SortedSet[T]): Option[SortedSet[T]] = 
+    if a.intersect(b).size > 0 then Some(a.union(b)) else None
 
   private def add[T](list: List[SortedSet[T]], a: SortedSet[T]): List[SortedSet[T]] = add(list, a, false, Nil)
   private def add[T](list: List[SortedSet[T]], a: SortedSet[T], added: Boolean, result: List[SortedSet[T]]): List[SortedSet[T]] = 

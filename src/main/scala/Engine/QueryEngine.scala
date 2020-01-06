@@ -9,12 +9,10 @@ import zio.stream.Stream
 def next(query: Query)(given p: Program): Option[Result] = 
   next(Stack(State(query, 0, Nil, 1) :: Nil))
 
-def next(stack: Stack[State])(given program: Program): Option[Result] = {
-
+def next(stack: Stack[State])(given program: Program): Option[Result] =
   for
     state           <- stack.peek
     goal            <- state.query.goals.headOption
-    //_               <- Some(println(show(state.query) + s" index=${state.index}"))
     goalRemainder    = state.query.goals.tail
     clauseRemainder  = 
       program
@@ -28,7 +26,7 @@ def next(stack: Stack[State])(given program: Program): Option[Result] = {
           for
             clauseRename <- Some(renameVariables(clause._1, state.depth))
             binding      <- unify(goal, clauseRename.head)
-            //_            <- Some(println(binding))
+            
             // if no more goals left to search
             // we have a result, return it
             updatedState = stack.pop.push(state.copy(index = clause._2))
@@ -42,7 +40,6 @@ def next(stack: Stack[State])(given program: Program): Option[Result] = {
         .orElse(nextState(stack.pop).map(n => next(n)))
         .flatten
   yield answer
-}
 
 def nextState(stack: Stack[State])(given p: Program): Option[Stack[State]] =
   for

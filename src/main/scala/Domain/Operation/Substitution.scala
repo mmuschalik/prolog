@@ -3,9 +3,8 @@ package Prolog.Domain.Operation
 import Prolog.Domain.ADT._
 import Prolog.Domain.ADT.Term._
 
-def substitute(solution: Bindings[Term], goals: List[Goal]): List[Goal] = {
+def substitute(solution: Bindings[Term], goals: List[Goal]): List[Goal] =
   solution.foldLeft(goals)((c, b) => c.map(g => substitution(g, (b._1, b._2))))
-}
 
 def substitution(goal: Goal, binding: Binding[Term]) =
   val variableSub = (a: Term, b: Binding[Term]) => 
@@ -28,7 +27,7 @@ def mergeBindings[T](s1: Bindings[T], s2: Bindings[T]): Bindings[T] =
   s1 ::: s2
 
 
-given bindTermOrd: Ordering[Term] {
+given bindTermOrd: Ordering[Term]
   def compare(x: Term, y: Term): Int = 
     (x,y) match
     case (Atom(a),Atom(b)) => a.compareTo(b)
@@ -40,4 +39,3 @@ given bindTermOrd: Ordering[Term] {
       else
         av.compareTo(bv)
     case _ => 1
-}
