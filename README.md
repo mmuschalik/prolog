@@ -10,6 +10,15 @@ For this implementation I have used the following:
 * ZIO Streams to implement an iterative prompt for each solution result
 * Scala 3 new control syntax and use indenting to get more readable code
 * Scala 3 Top-level definitions for functional methods
+* Scala Meta library for parsing the clauses
+* Scopt library for parsing command line arguments
+
+## TODO
+There are few things that would be interesting to implement, such as:
+* cut (!)
+* not (~) predicate
+* numbers incl. numeric operations
+* more...
 
 # Example
 ```
