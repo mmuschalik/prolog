@@ -2,8 +2,8 @@ package Prolog.Domain
 
 import scala.meta._
 import Prolog._
-import Prolog.Domain.Term._
-import Prolog.Domain.Program
+import Prolog.Domain.ADT.Term._
+import Prolog.Domain.ADT.{Program, Query, Goal, Clause}
 
 import scala.io.Source
 import zio._
@@ -23,23 +23,23 @@ def parseProgram(lines: List[String]): Option[Program] =
   allOK(lines.map(l => metaToClause(l.parse[Term].get)))
     .map(c => c.foldLeft(Program())((a, b) => a.add(b)))
 
-def metaToTerm(meta: Term): Option[Domain.Term] = 
+def metaToTerm(meta: Term): Option[Domain.ADT.Term] = 
   meta match
   case Term.Name(name: String) => name.headOption.map(h => if h.isUpper then Variable(name, 0) else Atom(name))
   case Term.Apply(Term.Name(name), list) => allOK(list.map(m => metaToTerm(m))).map(o => Predicate(name, o))
   case _ => None
 
-def metaToPredicate(meta: Term): Option[Domain.Term.Predicate] = 
+def metaToPredicate(meta: Term): Option[Predicate] = 
   metaToTerm(meta) match
   case Some(p: Predicate) => Some(p)
   case _ => None
 
-def metaToClause(meta: Term): Option[Domain.Clause] = 
+def metaToClause(meta: Term): Option[Clause] = 
   for
     cm <- clauseMetaTerm(meta, Nil)
     ch <- metaToPredicate(cm._1)
     cb <- allOK(cm._2.map(m => metaToPredicate(m)))
-  yield Domain.Clause(ch, cb)
+  yield Clause(ch, cb)
 
 def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = 
   meta match

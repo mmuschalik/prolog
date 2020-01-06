@@ -1,12 +1,13 @@
-package Prolog.Domain
+package Prolog.Domain.Operation
 
-import Term._
+import Prolog.Domain.ADT._
+import Prolog.Domain.ADT.Term._
 
-def substitute(solution: Bindings[Term], goals: List[Goal])(given substitution: Substitution): List[Goal] = {
+def substitute(solution: Bindings[Term], goals: List[Goal]): List[Goal] = {
   solution.foldLeft(goals)((c, b) => c.map(g => substitution(g, (b._1, b._2))))
 }
 
-given Substitution = (goal, binding) =>
+def substitution(goal: Goal, binding: Binding[Term]) =
   val variableSub = (a: Term, b: Binding[Term]) => 
     (a, b._1) match
     case (v: Variable, m: Variable) if v == m => b._2

@@ -1,5 +1,7 @@
 package Prolog.Domain
-import Term._
+
+import Prolog.Domain.ADT._
+import Prolog.Domain.ADT.Term._
 
 class MyResult(program: Program, query: Query) {
   private var result: Result = _

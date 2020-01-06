@@ -1,16 +1,20 @@
 package Prolog.Domain
-import Term._
+
+import Prolog.Domain.Operation.{queryShow, show, unify, renameVariables, mergeBindings, substitute}
+import Prolog.Domain.Operation._
+import Prolog.Domain.ADT._
+import Prolog.Domain.ADT.Term._
 import zio.stream.Stream
 
 def next(query: Query)(given p: Program): Option[Result] = 
-  next(Stack(State(query, 0, Nil, 0) :: Nil))
+  next(Stack(State(query, 0, Nil, 1) :: Nil))
 
 def next(stack: Stack[State])(given program: Program): Option[Result] = {
 
   for
     state           <- stack.peek
     goal            <- state.query.goals.headOption
-    _               <- Some(println(show(state.query) + s" index=${state.index}"))
+    //_               <- Some(println(show(state.query) + s" index=${state.index}"))
     goalRemainder    = state.query.goals.tail
     clauseRemainder  = 
       program
@@ -22,16 +26,17 @@ def next(stack: Stack[State])(given program: Program): Option[Result] = {
       LazyList(clauseRemainder:_*)
         .map(clause => 
           for
-            clauseRename <- Some(renameVariables(clause._1, state.depth + 1))
-            binding      <- Prolog.Domain.Unify.unify(goal, clauseRename.head)
+            clauseRename <- Some(renameVariables(clause._1, state.depth))
+            binding      <- unify(goal, clauseRename.head)
             //_            <- Some(println(binding))
             // if no more goals left to search
             // we have a result, return it
+            updatedState = stack.pop.push(state.copy(index = clause._2))
             
-            solution     <- if goalRemainder.isEmpty && clauseRename.body.isEmpty then
-                              Some(Result(nextState(stack.pop.push(State(state.query,clause._2,state.solution, state.depth))).getOrElse(Stack.empty), Some(mergeBindings(state.solution,binding)))) // return Result and nextState
+            solution     <- if goalRemainder.isEmpty && clauseRename.body.isEmpty && binding.nonEmpty then
+                              Some(Result(nextState(updatedState).getOrElse(Stack.empty), Some(mergeBindings(state.solution,binding)))) // return Result and nextState
                             else 
-                              next(stack.push(State(Query(substitute(binding,clauseRename.body ::: goalRemainder)), 0, binding ::: state.solution, state.depth + 1))) // subst and solve next goal
+                              next(updatedState.push(State(Query(substitute(binding,clauseRename.body ::: goalRemainder)), 0, binding ::: state.solution, state.depth + 1))) // subst and solve next goal
           yield solution)
         .find(f => f.isDefined)
         .orElse(nextState(stack.pop).map(n => next(n)))
@@ -48,13 +53,13 @@ def nextState(stack: Stack[State])(given p: Program): Option[Stack[State]] =
                       if clauseRemainder.isEmpty then 
                         nextState(stack.pop)
                       else 
-                        Some(stack.pop.push(State(state.query, state.index + 1, state.solution, state.depth)))
+                        Some(stack.pop.push(state.copy(index = state.index + 1)))
   yield nextState
 
 
 
 def queryProgram(program: Program, query: Query): Stream[Nothing,Result] = 
-  import Prolog.Domain.{resultShow, show}
+  import Prolog.Domain.Operation.{resultShow, show}
   import zio.stream._
 
   val it = new Iterable[Result] { def iterator: Iterator[Result] = ResultIterator(program, query) }

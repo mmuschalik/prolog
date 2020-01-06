@@ -2,9 +2,11 @@ package Prolog
 
 import zio.{App,Task}
 import zio.console._
-import Domain._
 import zio.stream.Stream
-import Prolog.Domain.{resultShow, show}
+
+import Prolog.Domain.{compile, parseQuery}
+import Prolog.Domain.Operation.{resultShow, show}
+import Prolog.Domain.ADT.Result
 
 object MyApp extends App {
 

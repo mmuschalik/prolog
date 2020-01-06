@@ -1,4 +1,4 @@
-package Prolog.Domain
+package Prolog.Domain.ADT
 
 import scala.collection.immutable.SortedSet
 

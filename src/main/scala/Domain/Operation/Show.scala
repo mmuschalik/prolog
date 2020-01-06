@@ -1,6 +1,7 @@
-package Prolog.Domain
+package Prolog.Domain.Operation
 
-import Term._
+import Prolog.Domain.ADT._
+import Prolog.Domain.ADT.Term._
 
 trait Show[T] {
   def show(t: T): String
@@ -40,7 +41,18 @@ given resultShow: Show[Result]
             .sorted
             .map(a => termShow.show(a._1) + "=" + termShow.show(a._2))
             .mkString(", "))
-      .getOrElse("false")
+      .getOrElse("false") //+ "\n" + 
+        //stackShow.show(result.stack)
+
+given stateShow: Show[State]
+  def show(state: State): String =
+    "goals:" + state.query.goals.map(q => termShow.show(q)).mkString(", ") +
+      ", index: " + state.index.toString +
+      ", depth: " + state.depth.toString
+
+given stackShow: Show[Stack[State]]
+  def show(stack: Stack[State]): String =
+    stack.stack.map(s => stateShow.show(s)).mkString("\n")
 
 def show[T](t: T)(given s: Show[T]): String = s.show(t)
 

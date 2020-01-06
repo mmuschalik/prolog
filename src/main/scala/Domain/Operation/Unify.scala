@@ -1,7 +1,8 @@
-package Prolog.Domain.Unify
-import Prolog.Domain._
-import Prolog.Domain.Term._
-import Prolog.Domain.bindTermOrd
+package Prolog.Domain.Operation
+
+import Prolog.Domain.ADT._
+import Prolog.Domain.ADT.Term._
+import Prolog.Domain.Operation.bindTermOrd
 
 def unify: Unification = (queryGoal, clauseGoal) => 
   val equalitySet = solveTerm(queryGoal, clauseGoal)
