@@ -45,7 +45,7 @@ isBigger(X,Y) :- bigger(X,Z) && isBigger(Z,Y)
 
 # Commandline Query
 ```bash
-$ echo "isBigger(A,B)" | sbt "run -f ./src/main/resources/test.txt"
+$ echo "isBigger(A,B)" | sbt "run ./src/main/resources/test.txt"
 ```
 
 The following output will be generated:

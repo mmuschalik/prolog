@@ -13,15 +13,16 @@ val parser1 = {
   OParser.sequence(
     programName("scalog"),
     head("scalog", "0.1"),
-    opt[String]('f', "file")
+    arg[String]("<file>")
       .action((x, c) => c.copy(file = x))
       .text("file is the path to the file to compile"),
-    opt[Boolean]('p', "prompt")
-      .action((x, c) => c.copy(prompt = x))
-      .text("set prompt to true for prompts between solutions"),
+    opt[Unit]("prompt")
+      .action((_, c) => c.copy(prompt = true))
+      .text("for prompts between solutions"),
     opt[Int]('t', "top")
+      .valueName("<n>")
       .action((x, c) => c.copy(top = x))
-      .text("show a maximum of top n results"),
+      .text("show a maximum of top <n> results"),
     )
 }
 
