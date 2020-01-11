@@ -10,17 +10,23 @@ import zio._
 
 def parseQuery(str: String): Task[Query] = 
   IO.fromOption(
-    metaToGoals(str.parse[Term].get)
+    str.parse[Term]
+      .toOption
+      .flatMap(metaToGoals)
       .map(gs => Query(gs)))
     .mapError(_ => Exception("Can't parse query."))
 
 def parsePredicate(str: String): Option[Predicate] =
-  metaToTerm(str.parse[Term].get) match
-  case Some(p: Predicate) => Some(p)
-  case _ => None
+  str.parse[Term]
+    .toOption
+    .flatMap(metaToTerm)
+    .collect { case p: Predicate => p }
 
 def parseProgram(lines: List[String]): Option[Program] =
-  allOK(lines.map(l => metaToClause(l.parse[Term].get)))
+  allOK(lines.map(l => 
+    l.parse[Term]
+      .toOption
+      .flatMap(metaToClause)))
     .map(c => c.foldLeft(Program())((a, b) => a.add(b)))
 
 def metaToTerm(meta: Term): Option[Domain.ADT.Term] = 

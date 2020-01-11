@@ -1,12 +1,15 @@
 package Prolog
 
+import scopt.OParser
+import zio.IO
+
 case class CliConfig(
   file: String = "./application.txt",
   prompt: Boolean = false,
   top: Integer = -1
 )
 
-import scopt.OParser
+
 val builder = OParser.builder[CliConfig]
 val parser1 = {
   import builder._
@@ -25,8 +28,6 @@ val parser1 = {
       .text("show a maximum of top <n> results"),
     )
 }
-
-import zio._
 
 def parse(args: List[String]) =
   IO.fromOption(OParser.parse(parser1, args, CliConfig()))

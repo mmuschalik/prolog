@@ -37,8 +37,7 @@ case class EqualitySet[A: Ordering] private (list: List[SortedSet[A]]) {
         a :: result
     case h::t => 
       merge(h, a)
-        .map(m => add(t, a, true, m :: result))
-        .getOrElse(add(t, a, added, h :: result))
+        .fold(add(t, a, added, h :: result))(m => add(t, a, true, m :: result))
     
 }
 

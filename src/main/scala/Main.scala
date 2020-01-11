@@ -7,6 +7,7 @@ import zio.stream.Stream
 import Prolog.Domain.{compile, parseQuery}
 import Prolog.Domain.Operation.{resultShow, show}
 import Prolog.Domain.ADT.Result
+import Prolog.Domain.queryProgram
 
 object MyApp extends App {
 
@@ -21,7 +22,7 @@ object MyApp extends App {
       _           <- putStrLn("Enter your goal:")
       queryString <- getStrLn
       query       <- parseQuery(queryString)
-      _           <- prompt(Domain.queryProgram(program, query), config)
+      _           <- prompt(queryProgram(program, query), config)
     yield ()
 }
 
