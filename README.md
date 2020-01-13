@@ -39,16 +39,16 @@ nextTo(jupiter,saturn)
 nextTo(saturn,uranus)
 nextTo(uranus,neptune)
 
-isNextTo(X,Y) :- nextTo(X,Y)
-isNextTo(X,Y) :- nextTo(Y,X)
+isNextTo(X,Y) := nextTo(X,Y)
+isNextTo(X,Y) := nextTo(Y,X)
 
 bigger(jupiter,saturn)
 bigger(saturn,neptune)
 bigger(neptune,earth)
 bigger(earth,mars)
 
-isBigger(X,Y) :- bigger(X,Y)
-isBigger(X,Y) :- bigger(X,Z) && isBigger(Z,Y)
+isBigger(X,Y) := bigger(X,Y)
+isBigger(X,Y) := bigger(X,Z) && isBigger(Z,Y)
 
 ```
 
