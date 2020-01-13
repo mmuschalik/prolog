@@ -15,14 +15,13 @@ nextTo(jupiter,saturn)
 nextTo(saturn,uranus)
 nextTo(uranus,neptune)
 
-isNextTo(X,Y) :- nextTo(X,Y)
-isNextTo(X,Y) :- nextTo(Y,X)
+isNextTo(X,Y) := nextTo(X,Y)
+isNextTo(X,Y) := nextTo(Y,X)
 
 bigger(jupiter,saturn)
 bigger(saturn,neptune)
 bigger(neptune,earth)
 bigger(earth,mars)
 
-isBigger(X,Z) :- bigger(X,Z)
-isBigger(X,Z) :- bigger(X,Y) && isBigger(Y,Z)
-
+isBigger(X,Z) := bigger(X,Z)
+isBigger(X,Z) := bigger(X,Y) && isBigger(Y,Z)

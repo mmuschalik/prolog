@@ -8,15 +8,15 @@ case class EqualitySet[A: Ordering] private (list: List[SortedSet[A]]) {
 
   // add 'a = b'
   def add(a: A, b: A): EqualitySet[A] = add(SortedSet(a, b))
-  def add(t: (A, A)): EqualitySet[A] = add(t._1, t._2)
+  def add(pair: (A, A)): EqualitySet[A] = add(pair._1, pair._2)
 
   // substitute by finding the object and returning the lowest value
-  def subOption(a: A): Option[A] = 
+  def subOption(value: A): Option[A] = 
     for
-      f <- list.find(i => i.contains(a))
-      r <- f.headOption
-      if r != a
-    yield r
+      find <- list.find(i => i.contains(value))
+      result <- find.headOption
+      if result != value
+    yield result
 
   def sub(a: A): A = subOption(a).getOrElse(a)
 

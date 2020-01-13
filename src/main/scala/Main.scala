@@ -12,7 +12,7 @@ import Prolog.Domain.queryProgram
 object MyApp extends App {
 
   def run(args: List[String]) =
-    myApp(args).fold(_ => 1, _ => 0)
+    myApp(args).fold(x => 1, _ => 0)
 
   val myApp = (args: List[String]) =>
     for

@@ -23,10 +23,10 @@ def parsePredicate(str: String): Option[Predicate] =
     .collect { case p: Predicate => p }
 
 def parseProgram(lines: List[String]): Option[Program] =
-  allOK(lines.map(l => 
+  allOK(lines.map(l => {
     l.parse[Term]
       .toOption
-      .flatMap(metaToClause)))
+      .flatMap(metaToClause)}))
     .map(c => c.foldLeft(Program())((a, b) => a.add(b)))
 
 def metaToTerm(meta: Term): Option[Domain.ADT.Term] = 
@@ -48,20 +48,24 @@ def metaToClause(meta: Term): Option[Clause] =
   yield Clause(ch, cb)
 
 def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = 
+  //println(meta.structure)
   meta match
-  case Term.ApplyInfix(h, Term.Name(":-"), Nil, t1::Nil) => Some((h, t1 :: body))
-  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => clauseMetaTerm(t, t1 :: body)
+  case Term.ApplyInfix(h, Term.Name(":="), Nil, t1::Nil) => 
+    clauseBodyMetaTerm(t1, Nil)
+      .map(m => (h, m))
   case t: Term.Apply => Some((t, Nil))
   case _ => None
 
-def metaToGoals(meta: Term): Option[List[Goal]] =
-  goalsMetaTerm(meta, Nil).map(m => m.map(x => metaToPredicate(x)).flatten)
-
-def goalsMetaTerm(meta: Term, body: List[Term]): Option[List[Term]] = 
+def clauseBodyMetaTerm(meta: Term, body: List[Term]): Option[List[Term]] =
   meta match
-  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => goalsMetaTerm(t, t1 :: body)
+  case Term.ApplyInfix(t, Term.Name("=="), Nil, t1::Nil) => Some(Term.Apply(Term.Name("eql"), List(t, t1)) :: body)
+  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => clauseBodyMetaTerm(t, t1 :: body)
   case t: Term.Apply => Some(t :: body)
+  case t: Lit.Boolean => Some(Term.Apply(Term.Name("false"), Nil) :: body)
   case _ => None
+
+def metaToGoals(meta: Term): Option[List[Goal]] =
+  clauseBodyMetaTerm(meta, Nil).map(m => m.map(x => metaToPredicate(x)).flatten)
 
 def allOK[T](list: List[Option[T]]): Option[List[T]] = 
   if list.contains(None) then
