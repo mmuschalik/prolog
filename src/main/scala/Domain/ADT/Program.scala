@@ -23,8 +23,17 @@ object Program {
   def apply(): Program = baseProgram.foldLeft(new Program())((program, clause) => program.add(clause))
 
   val baseProgram: List[Clause] = 
-    Clause(new Predicate("eql", List(Variable("T", 0), Variable("T", 0))), Nil) ::
-    Clause(new Predicate("false", Nil), new Predicate("eql", Atom("a") :: Atom("b") :: Nil) :: Nil)
-    :: Nil  // eql(T,T)
+    // eql(T,T)
+    Clause(new Predicate("eql", List(Variable("T", 0), Variable("T", 0))), Nil) :: 
+    // false() := eql(a,b)
+    Clause(new Predicate("false", Nil), new Predicate("eql", Atom("a") :: Atom("b") :: Nil) :: Nil) ::
+    // not(T) := call(T) && cut() && false
+    // not(T)
+    Clause(new Predicate("not", List(Variable("T", 0))), List(
+      new Predicate("call", Variable("T", 0) :: Nil), 
+      new Predicate("cut", Nil), 
+      new Predicate("false", Nil))) ::
+    Clause(new Predicate("not", List(Variable("T", 0))), Nil)
+    :: Nil  
     
 }

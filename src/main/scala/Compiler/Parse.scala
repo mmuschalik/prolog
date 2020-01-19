@@ -33,6 +33,7 @@ def metaToTerm(meta: Term): Option[Domain.ADT.Term] =
   meta match
   case Term.Name(name: String) => name.headOption.map(h => if h.isUpper then Variable(name, 0) else Atom(name))
   case Term.Apply(Term.Name(name), list) => allOK(list.map(m => metaToTerm(m))).map(o => Predicate(name, o))
+  case t: Lit.Boolean => Some(Predicate("false", Nil))
   case _ => None
 
 def metaToPredicate(meta: Term): Option[Predicate] = 
@@ -61,7 +62,7 @@ def clauseBodyMetaTerm(meta: Term, body: List[Term]): Option[List[Term]] =
   case Term.ApplyInfix(t, Term.Name("=="), Nil, t1::Nil) => Some(Term.Apply(Term.Name("eql"), List(t, t1)) :: body)
   case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => clauseBodyMetaTerm(t, t1 :: body)
   case t: Term.Apply => Some(t :: body)
-  case t: Lit.Boolean => Some(Term.Apply(Term.Name("false"), Nil) :: body)
+  case t: Lit.Boolean => Some(t :: body)
   case _ => None
 
 def metaToGoals(meta: Term): Option[List[Goal]] =

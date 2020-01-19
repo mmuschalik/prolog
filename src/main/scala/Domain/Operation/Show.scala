@@ -52,7 +52,7 @@ given stateShow: Show[State]
 
 given stackShow: Show[Stack[State]]
   def show(stack: Stack[State]): String =
-    stack.stack.map(s => stateShow.show(s)).mkString("\n")
+    stack.stack.map(s => stateShow.show(s)).mkString("...\n")
 
 def show[T](t: T)(given s: Show[T]): String = s.show(t)
 

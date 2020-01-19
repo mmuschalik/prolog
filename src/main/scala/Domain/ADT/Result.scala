@@ -17,6 +17,8 @@ case class Stack[T](stack: List[T]) {
       this 
     else 
       Stack(stack.tail)
+
+  def pop(size: Int): Stack[T] = Stack(stack.drop(size))
   
   def push(t: T): Stack[T] = Stack(t :: stack)
 
@@ -29,4 +31,5 @@ object Stack {
 
 case class Result(
   stack: Stack[State], 
-  solution: Option[Bindings[Term]])
+  solution: Option[Bindings[Term]],
+  isCut: Boolean = false)
