@@ -15,13 +15,15 @@ For this implementation I have used the following:
 
 ## TODO
 There are few things that would be interesting to implement, such as:
-* cut (!)
-* not (~) predicate
-* numbers incl. numeric operations
+* cut (!) -- complete
+* not (~) predicate -- wip
+* numbers incl. numeric operations -- not started
 * more...
 
 # Example
 ```
+% facts
+
 planet(mercury)
 planet(venus)
 planet(earth)
@@ -39,13 +41,15 @@ nextTo(jupiter,saturn)
 nextTo(saturn,uranus)
 nextTo(uranus,neptune)
 
-isNextTo(X,Y) := nextTo(X,Y)
-isNextTo(X,Y) := nextTo(Y,X)
-
 bigger(jupiter,saturn)
 bigger(saturn,neptune)
 bigger(neptune,earth)
 bigger(earth,mars)
+
+% rules
+
+isNextTo(X,Y) := nextTo(X,Y)
+isNextTo(X,Y) := nextTo(Y,X)
 
 isBigger(X,Y) := bigger(X,Y)
 isBigger(X,Y) := bigger(X,Z) && isBigger(Z,Y)
