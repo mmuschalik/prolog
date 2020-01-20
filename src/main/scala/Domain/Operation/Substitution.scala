@@ -6,17 +6,21 @@ import Prolog.Domain.ADT.Term._
 def substitute(solution: Bindings[Term], goals: List[Goal]): List[Goal] =
   solution.foldLeft(goals)((c, b) => c.map(g => substitution(g, (b._1, b._2))))
 
-def substitution(goal: Goal, binding: Binding[Term]) =
-  val variableSub = (a: Term, b: Binding[Term]) => 
-    (a, b._1) match
-    case (v: Variable, m: Variable) if v == m => b._2
+def substitution(a: Goal, b: Binding[Term]): Goal =
+    substiteTerm(a,b) match
+    case p: Predicate => p
     case _ => a
 
-  new Predicate(goal.name, goal.arguments.map(a => variableSub(a, binding)))
+def substiteTerm(a: Term, b: Binding[Term]): Term =
+  (a, b._1) match
+  case (v: Variable, m: Variable) if v == m => b._2
+  case (p: Predicate, _) => new Predicate(p.name, p.arguments.map(s => substiteTerm(s, b)))
+  case _ => a
 
 def renameVariables(predicate: Predicate, version: Int): Predicate = 
   new Predicate(predicate.name, predicate.arguments.map(a => a match {
     case Variable(name, _) => Variable(if name.startsWith("_") then name else ("_" + name), version)
+    case p: Predicate => renameVariables(p, version)
     case _ => a
   }))
 

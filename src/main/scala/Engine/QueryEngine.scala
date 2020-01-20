@@ -50,17 +50,20 @@ def next(stack: Stack[State])(given program: Program): Option[Result] =
           .map(m =>
             for
               pair <- m
-              ret <- if pair._1.isCut && pair._2 then 
-                      // everything should have been cut, so continue solving now
-                      println("caught it!")
-                      next(pair._1.stack.peek.map(p => pair._1.stack.pop.pop.push(p)).getOrElse(Stack.empty)) // dont explore alternate solutions for the clause head 
-                    else if pair._1.isCut then
-                      // we need to cut, but more to be cut...
-                      println("cutting...")
-                      Some(Result(pair._1.stack.peek.map(p => pair._1.stack.pop.pop.push(p)).getOrElse(Stack.empty), pair._1.solution, true))
-                    else
-                      // no cut, just return the solution
-                      Some(pair._1)
+              ret  <- if pair._1.isCut && pair._2 then 
+                        // everything should have been cut, so continue solving now
+                        //println("caught it!")
+                        val newStack = pair._1.stack.peek.map(p => pair._1.stack.pop.pop.push(p))
+                        //println(show(newStack.get))
+                        //scala.io.StdIn.readChar
+                        next(newStack.getOrElse(Stack.empty)) // dont explore alternate solutions for the clause head 
+                      else if pair._1.isCut then
+                        // we need to cut, but more to be cut...
+                        //println("cutting...")
+                        Some(Result(pair._1.stack.peek.map(p => pair._1.stack.pop.pop.push(p)).getOrElse(Stack.empty), pair._1.solution, true))
+                      else
+                        // no cut, just return the solution
+                        Some(pair._1)
             yield ret)
           .orElse(nextState(stackWithCut.pop).map(n => next(n)))
           .flatten
