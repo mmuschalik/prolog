@@ -16,6 +16,12 @@ def parseQuery(str: String): Task[Query] =
       .map(gs => Query(gs)))
     .mapError(_ => Exception("Can't parse query."))
 
+def parseTerm(str: String): Either[Throwable, ADT.Term] =
+  str.parse[Term]
+    .toEither.left.map(l => new Exception(s"Problem parsing scala term: $str"))
+    .flatMap(m => metaToTerm(m).map(x => Right(x)).getOrElse(Left(new Exception(s"Problem parsing prolog term: $str"))))
+
+
 def parsePredicate(str: String): Option[Predicate] =
   str.parse[Term]
     .toOption
@@ -23,17 +29,30 @@ def parsePredicate(str: String): Option[Predicate] =
     .collect { case p: Predicate => p }
 
 def parseProgram(lines: List[String]): Option[Program] =
-  allOK(lines.map(l => {
-    l.parse[Term]
-      .toOption
-      .flatMap(metaToClause)}))
-    .map(c => c.foldLeft(Program())((a, b) => a.add(b)))
+  allOK(
+    lines
+      .filterNot(f => f.trim.startsWith("//"))
+      .map(l => 
+        l.parse[Term]
+          .toOption
+          .flatMap(metaToClause)))
+      .map(c => c.foldLeft(Program())((a, b) => a.add(b)))
 
 def metaToTerm(meta: Term): Option[Domain.ADT.Term] = 
   meta match
-  case Term.Name(name: String) => name.headOption.map(h => if h.isUpper then Variable(name, 0) else Atom(name))
+  case Term.Name(name: String) => name.headOption.map(h => if h.isUpper then Variable(name) else Atom(name))
   case Term.Apply(Term.Name(name), list) => allOK(list.map(m => metaToTerm(m))).map(o => Predicate(name, o))
-  case t: Lit.Boolean => Some(Predicate("false", Nil))
+  case t: Lit.Boolean => Some(Predicate("false"))
+  case Term.ApplyInfix(t, Term.Name("=="), Nil, t1::Nil) => 
+    for
+      l <- metaToTerm(t)
+      r <- metaToTerm(t1)
+    yield Predicate("eql", l :: r :: Nil)
+  case Term.ApplyInfix(t, Term.Name("!="), Nil, t1::Nil) => 
+    for
+      l <- metaToTerm(t)
+      r <- metaToTerm(t1)
+    yield Predicate("not", Predicate("eql", l :: r :: Nil) :: Nil)
   case _ => None
 
 def metaToPredicate(meta: Term): Option[Predicate] = 

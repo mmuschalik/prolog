@@ -28,8 +28,8 @@ object MyApp extends App {
 
 def prompt(stream: Stream[Nothing, Result], config: CliConfig) =
   (if(config.top > 0) then stream.take(config.top) else stream)
-    .foreach(r => 
+    .foreach(answer => 
       for 
-        _   <- putStrLn(show(r))
+        _   <- putStrLn(show(answer))
         str <- if config.prompt then getStrLn else IO.succeed("")
       yield ())

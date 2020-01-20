@@ -3,13 +3,13 @@ package Prolog.Domain.ADT
 import Term._
 
 enum Term derives Eql {
-  case Variable(name: String, version: Integer)         // A
+  case Variable(name: String, version: Integer = 0)         // A
   case Atom(value: String)                              // a
-  case Predicate(name: String, arguments: List[Term])   // f(t1,t2,t3)
+  case Predicate(name: String, arguments: List[Term] = Nil)   // f(t1,t2,t3)
 }
 
 // Clause is of form >> H :- G1 /\ G2
-case class Clause(head: Goal, body: List[Goal]) { 
+case class Clause(head: Goal, body: List[Goal] = Nil) { 
   
   def key = head.name + "_" + head.arguments.size.toString
 } 
