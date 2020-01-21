@@ -13,6 +13,5 @@ def compile(filePath: String): Task[Program] =
                     .getLines
                     .filter(f => f.trim.nonEmpty)
                     .toList)
-    program  <- IO.fromOption(parseProgram(lines))
-                  .mapError(er => Exception("Can't parse program."))
+    program  <- IO.fromEither(parseProgram(lines))
   yield program

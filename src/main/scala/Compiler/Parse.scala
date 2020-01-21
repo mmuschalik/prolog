@@ -8,35 +8,88 @@ import Prolog.Domain.ADT.{Program, Query, Goal, Clause}
 import scala.io.Source
 import zio._
 
+def parseToMetaTerm(str: String): Either[Throwable, Term] =
+  str.parse[Term]
+    .toEither
+    .left
+    .map(_ => Exception(s"Invalid scala term: $str"))
+
 def parseQuery(str: String): Task[Query] = 
-  IO.fromOption(
-    str.parse[Term]
-      .toOption
-      .flatMap(metaToGoals)
-      .map(gs => Query(gs)))
-    .mapError(_ => Exception("Can't parse query."))
+  IO.fromEither(for
+    metaTerm <- parseToMetaTerm(str)
+    goals    <- metaTermToGoals(metaTerm)
+  yield Query(goals))
 
 def parseTerm(str: String): Either[Throwable, ADT.Term] =
-  str.parse[Term]
-    .toEither.left.map(l => new Exception(s"Problem parsing scala term: $str"))
-    .flatMap(m => metaToTerm(m).map(x => Right(x)).getOrElse(Left(new Exception(s"Problem parsing prolog term: $str"))))
+  for 
+    metaTerm <- parseToMetaTerm(str)
+    term <- metaTermToTerm(metaTerm)
+  yield term
 
+def metaTermToTerm(metaTerm: Term): Either[Throwable, ADT.Term] =
+  metaToTerm(metaTerm)
+    .fold(Left(Exception(s"Invalid term: ${metaTerm.toString}")))(Right(_))
 
-def parsePredicate(str: String): Option[Predicate] =
-  str.parse[Term]
-    .toOption
-    .flatMap(metaToTerm)
-    .collect { case p: Predicate => p }
+def termToPredicate(term: ADT.Term): Either[Throwable, Predicate] =
+  term match
+    case p: Predicate => Right(p)
+    case _ => Left(Exception(s"Term ${term.toString} is not a predicate"))
 
-def parseProgram(lines: List[String]): Option[Program] =
-  allOK(
-    lines
-      .filterNot(f => f.trim.startsWith("//"))
-      .map(l => 
-        l.parse[Term]
-          .toOption
-          .flatMap(metaToClause)))
-      .map(c => c.foldLeft(Program())((a, b) => a.add(b)))
+def parsePredicate(str: String): Either[Throwable, Predicate] =
+  for 
+    term      <- parseTerm(str)
+    predicate <- termToPredicate(term)
+  yield predicate
+
+def parseClause(str: String): Either[Throwable, Clause] =
+  for 
+    headBody <- parseClauseHead(str)
+    headTerm <- metaTermToTerm(headBody._1)
+    head     <- termToPredicate(headTerm)
+    goals    <- headBody._2.fold(Right(Nil))(metaTermToGoals)
+  yield Clause(head, goals)
+
+def parseClauseHead(str: String): Either[Throwable, (Term, Option[Term])] =
+  for
+    wholeMetaTerm  <- parseToMetaTerm(str)
+    clauseOption    = wholeMetaTerm match {
+                        case Term.ApplyInfix(h, Term.Name(":="), Nil, b::Nil) =>
+                          Some((h, Some(b)))
+                        case t => None
+                      }
+  yield clauseOption.getOrElse((wholeMetaTerm, None))
+
+def metaTermToGoals(metaTerm: Term): Either[Throwable, List[Goal]] =
+  metaTerm match
+  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => 
+    for
+      goal         <- metaTermToGoal(t1)
+      goalRemainder = metaTermToGoals(t)
+      result       <- goalRemainder.map(g => g ::: List(goal))
+    yield result
+  case t => metaTermToGoal(t).map(m => m :: Nil)
+  
+def metaTermToGoal(metaTerm: Term): Either[Throwable, Goal] =
+  for
+    term <- metaTermToTerm(metaTerm)
+    goal <- termToPredicate(term)
+  yield goal
+
+case class AggException(list: List[Throwable]) extends Throwable
+
+def parseProgram(lines: List[String]): Either[Throwable, Program] =
+  val clauseEithers = lines
+                        .filterNot(f => f.trim.startsWith("//"))
+                        .map(parseClause)
+  
+  val failures = clauseEithers.collect{case Left(l) => l}.toList
+  
+  if failures.isEmpty then
+    Right(clauseEithers
+      .collect{case Right(r) => r}
+      .foldLeft(Program())((a, b) => a.add(b)))
+  else
+    Left(AggException(failures))
 
 def metaToTerm(meta: Term): Option[Domain.ADT.Term] = 
   meta match
@@ -54,38 +107,6 @@ def metaToTerm(meta: Term): Option[Domain.ADT.Term] =
       r <- metaToTerm(t1)
     yield Predicate("not", Predicate("eql", l :: r :: Nil) :: Nil)
   case _ => None
-
-def metaToPredicate(meta: Term): Option[Predicate] = 
-  metaToTerm(meta) match
-  case Some(p: Predicate) => Some(p)
-  case _ => None
-
-def metaToClause(meta: Term): Option[Clause] = 
-  for
-    cm <- clauseMetaTerm(meta, Nil)
-    ch <- metaToPredicate(cm._1)
-    cb <- allOK(cm._2.map(m => metaToPredicate(m)))
-  yield Clause(ch, cb)
-
-def clauseMetaTerm(meta: Term, body: List[Term]): Option[(Term, List[Term])] = 
-  //println(meta.structure)
-  meta match
-  case Term.ApplyInfix(h, Term.Name(":="), Nil, t1::Nil) => 
-    clauseBodyMetaTerm(t1, Nil)
-      .map(m => (h, m))
-  case t: Term.Apply => Some((t, Nil))
-  case _ => None
-
-def clauseBodyMetaTerm(meta: Term, body: List[Term]): Option[List[Term]] =
-  meta match
-  case Term.ApplyInfix(t, Term.Name("=="), Nil, t1::Nil) => Some(Term.Apply(Term.Name("eql"), List(t, t1)) :: body)
-  case Term.ApplyInfix(t, Term.Name("&&"), Nil, t1::Nil) => clauseBodyMetaTerm(t, t1 :: body)
-  case t: Term.Apply => Some(t :: body)
-  case t: Lit.Boolean => Some(t :: body)
-  case _ => None
-
-def metaToGoals(meta: Term): Option[List[Goal]] =
-  clauseBodyMetaTerm(meta, Nil).map(m => m.map(x => metaToPredicate(x)).flatten)
 
 def allOK[T](list: List[Option[T]]): Option[List[T]] = 
   if list.contains(None) then
