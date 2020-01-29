@@ -26,7 +26,7 @@ object Program {
     // eql(T,T)
     Clause(new Predicate("eql", List(Variable("T"), Variable("T")))) :: 
     // false() := eql(a,b)
-    Clause(new Predicate("false", Nil), new Predicate("eql", Atom("a") :: Atom("b") :: Nil) :: Nil) ::
+    Clause(new Predicate("false", Nil), FalseGoal :: Nil) ::
     // not(T) := call(T) && cut() && false
     // not(T)
     Clause(new Predicate("not", List(Variable("T"))), List(

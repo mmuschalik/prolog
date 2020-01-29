@@ -15,15 +15,16 @@ def parseToMetaTerm(str: String): Either[Throwable, Term] =
     .map(_ => Exception(s"Invalid scala term: $str"))
 
 def parseQuery(str: String): Task[Query] = 
-  IO.fromEither(for
-    metaTerm <- parseToMetaTerm(str)
-    goals    <- metaTermToGoals(metaTerm)
-  yield Query(goals))
+  IO.fromEither(
+    for
+      metaTerm <- parseToMetaTerm(str)
+      goals    <- metaTermToGoals(metaTerm)
+    yield Query(goals))
 
 def parseTerm(str: String): Either[Throwable, ADT.Term] =
   for 
     metaTerm <- parseToMetaTerm(str)
-    term <- metaTermToTerm(metaTerm)
+    term     <- metaTermToTerm(metaTerm)
   yield term
 
 def metaTermToTerm(metaTerm: Term): Either[Throwable, ADT.Term] =
@@ -32,13 +33,13 @@ def metaTermToTerm(metaTerm: Term): Either[Throwable, ADT.Term] =
 
 def termToPredicate(term: ADT.Term): Either[Throwable, Predicate] =
   term match
-    case p: Predicate => Right(p)
-    case _ => Left(Exception(s"Term ${term.toString} is not a predicate"))
+  case p: Predicate => Right(p)
+  case _ => Left(Exception(s"Term ${term.toString} is not a predicate"))
 
 def parsePredicate(str: String): Either[Throwable, Predicate] =
   for 
-    term      <- parseTerm(str)
-    predicate <- termToPredicate(term)
+    term       <- parseTerm(str)
+    predicate  <- termToPredicate(term)
   yield predicate
 
 def parseClause(str: String): Either[Throwable, Clause] =
@@ -82,7 +83,9 @@ def parseProgram(lines: List[String]): Either[Throwable, Program] =
                         .filterNot(f => f.trim.startsWith("//"))
                         .map(parseClause)
   
-  val failures = clauseEithers.collect{case Left(l) => l}.toList
+  val failures  = clauseEithers
+                    .collect {case Left(l) => l}
+                    .toList
   
   if failures.isEmpty then
     Right(clauseEithers
@@ -93,9 +96,14 @@ def parseProgram(lines: List[String]): Either[Throwable, Program] =
 
 def metaToTerm(meta: Term): Option[Domain.ADT.Term] = 
   meta match
-  case Term.Name(name: String) => name.headOption.map(h => if h.isUpper then Variable(name) else Atom(name))
-  case Term.Apply(Term.Name(name), list) => allOK(list.map(m => metaToTerm(m))).map(o => Predicate(name, o))
+  case Term.Name(name: String) => 
+    name.headOption
+      .map(h => if h.isUpper then Variable(name) else Atom(name))
+  case Term.Apply(Term.Name(name), list) => 
+    allOK(list.map(m => metaToTerm(m)))
+      .map(o => Predicate(name, o))
   case t: Lit.Boolean => Some(Predicate("false"))
+  case str: Lit.String => Some(Atom(str.value))
   case Term.ApplyInfix(t, Term.Name("=="), Nil, t1::Nil) => 
     for
       l <- metaToTerm(t)

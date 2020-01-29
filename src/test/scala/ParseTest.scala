@@ -9,10 +9,20 @@ import Assert._
 class ParseTest {
 
   @Test
+  def simpleStringAtom: Unit =
+    val line = """test("a b")"""
+    val p = parsePredicate(line)
+    assertEquals("Test parsing a simple string atom",
+      Right(new Predicate("test", Atom("a b") :: Nil)), 
+      p)
+
+  @Test
   def testParseSimpleFact: Unit =
     val line = "test(A, b)"
     val p = parsePredicate(line)
-    assertEquals("Test parsing a simple predicate", Right(new Predicate("test", Variable("A") :: Atom("b") :: Nil)), p)
+    assertEquals("Test parsing a simple predicate", 
+      Right(new Predicate("test", Variable("A") :: Atom("b") :: Nil)), 
+      p)
 
   @Test
   def testParseNestedPredicate: Unit =
@@ -24,7 +34,9 @@ class ParseTest {
   def testParseEqualityPredicate: Unit =
     val line = "A == B"
     val p = parsePredicate(line)
-    assertEquals("Test parsing equality", Right(new Predicate("eql", Variable("A") :: Variable("B") :: Nil)), p)
+    assertEquals("Test parsing equality", 
+      Right(new Predicate("eql", Variable("A") :: Variable("B") :: Nil)), 
+      p)
 
   @Test
   def testFact: Unit =

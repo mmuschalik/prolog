@@ -17,6 +17,11 @@ case class Clause(head: Goal, body: List[Goal] = Nil) {
 case class Query(goals: List[Goal])
 
 type Goal = Predicate
+
+val TrueGoal = new Predicate("eql", Atom("a") :: Atom("a") :: Nil)
+val FalseGoal = new Predicate("eql", Atom("a") :: Atom("b") :: Nil)
+
+
 type Binding[T] = (T, T)
 type Bindings[T] = List[Binding[T]]
 
